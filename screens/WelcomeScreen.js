@@ -51,7 +51,7 @@ export default function WelcomeScreen({ user, onStart }) {
                         end={{ x: 1, y: 0 }}
                     >
                         <Text style={styles.buttonText}>Let's Start</Text>
-                        <MaterialCommunityIcons name="auto-fix" size={20} color="#1c1022" />
+                        <MaterialCommunityIcons name="shimmer" size={20} color="#1c1022" />
                     </LinearGradient>
                 </TouchableOpacity>
             </Animated.View>

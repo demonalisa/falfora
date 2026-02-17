@@ -10,10 +10,12 @@ import LoginScreen from './screens/LoginScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
+import ReadingScreen from './screens/ReadingScreen';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home'
+  const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home', 'reading'
   const [sessionUser, setSessionUser] = useState(null); // { id: string, name: string }
+  const [selectedFortuneType, setSelectedFortuneType] = useState(null);
 
   const checkUserAndNavigate = (user) => {
     setSessionUser(user);
@@ -98,6 +100,16 @@ export default function App() {
             <HomeScreen
               user={sessionUser}
               onLogout={handleLogout}
+              onReadFortune={(type) => {
+                setSelectedFortuneType(type);
+                setCurrentScreen('reading');
+              }}
+            />
+          )}
+          {currentScreen === 'reading' && (
+            <ReadingScreen
+              selectedType={selectedFortuneType}
+              onBack={() => setCurrentScreen('home')}
             />
           )}
         </SafeAreaView>

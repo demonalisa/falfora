@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from '
 import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function HomeScreen({ user, onLogout }) {
+export default function HomeScreen({ user, onLogout, onReadFortune }) {
     const [selectedType, setSelectedType] = useState(null); // '3_cards' or '10_cards'
 
     return (
@@ -78,7 +78,7 @@ export default function HomeScreen({ user, onLogout }) {
                 <TouchableOpacity
                     disabled={!selectedType}
                     style={[styles.readButton, !selectedType && styles.readButtonDisabled]}
-                    onPress={() => console.log('Reading fortune for:', selectedType)}
+                    onPress={() => onReadFortune(selectedType)}
                 >
                     <LinearGradient
                         colors={selectedType ? ['#d4af37', '#b8860b'] : ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
