@@ -11,6 +11,8 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
 import ReadingScreen from './screens/ReadingScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import HistoryScreen from './screens/HistoryScreen';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home', 'reading'
@@ -100,6 +102,7 @@ export default function App() {
             <HomeScreen
               user={sessionUser}
               onLogout={handleLogout}
+              onNavigate={(screen) => setCurrentScreen(screen)}
               onReadFortune={(type) => {
                 setSelectedFortuneType(type);
                 setCurrentScreen('reading');
@@ -110,6 +113,19 @@ export default function App() {
             <ReadingScreen
               selectedType={selectedFortuneType}
               onBack={() => setCurrentScreen('home')}
+              onNavigate={(screen) => setCurrentScreen(screen)}
+            />
+          )}
+          {currentScreen === 'profile' && (
+            <ProfileScreen
+              user={sessionUser}
+              onLogout={handleLogout}
+              onNavigate={(screen) => setCurrentScreen(screen)}
+            />
+          )}
+          {currentScreen === 'history' && (
+            <HistoryScreen
+              onNavigate={(screen) => setCurrentScreen(screen)}
             />
           )}
         </SafeAreaView>

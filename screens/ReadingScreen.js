@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function ReadingScreen({ selectedType, onBack }) {
+export default function ReadingScreen({ selectedType, onBack, onNavigate }) {
     const fortuneNames = {
         '3_cards': 'Daily Insight',
         '10_cards': 'Galactic Spread'
@@ -24,18 +24,18 @@ export default function ReadingScreen({ selectedType, onBack }) {
             </View>
 
             <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('history')}>
                     <MaterialCommunityIcons name="history" size={26} color="rgba(255, 255, 255, 0.4)" />
                     <Text style={styles.navText}>History</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.navItemActive}>
+                <TouchableOpacity style={styles.navItemActive} onPress={() => onNavigate('home')}>
                     <View style={styles.activeIndicator} />
                     <MaterialCommunityIcons name="home-variant" size={26} color="#d4af37" />
                     <Text style={styles.navTextActive}>Home</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('profile')}>
                     <MaterialCommunityIcons name="account-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
                     <Text style={styles.navText}>Profile</Text>
                 </TouchableOpacity>

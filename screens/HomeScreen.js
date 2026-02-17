@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from '
 import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function HomeScreen({ user, onLogout, onReadFortune }) {
+export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }) {
     const [selectedType, setSelectedType] = useState(null); // '3_cards' or '10_cards'
 
     return (
@@ -100,7 +100,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune }) {
 
             {/* Bottom Nav */}
             <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('history')}>
                     <MaterialCommunityIcons name="history" size={26} color="rgba(255, 255, 255, 0.4)" />
                     <Text style={styles.navText}>History</Text>
                 </TouchableOpacity>
@@ -111,7 +111,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune }) {
                     <Text style={styles.navTextActive}>Home</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('profile')}>
                     <MaterialCommunityIcons name="account-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
                     <Text style={styles.navText}>Profile</Text>
                 </TouchableOpacity>
