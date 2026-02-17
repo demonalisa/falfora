@@ -111,6 +111,8 @@ export default function App() {
           )}
           {currentScreen === 'reading' && (
             <ReadingScreen
+              user={sessionUser}
+              userInfo={DatabaseService.getUser(sessionUser?.id)}
               selectedType={selectedFortuneType}
               onBack={() => setCurrentScreen('home')}
               onNavigate={(screen) => setCurrentScreen(screen)}

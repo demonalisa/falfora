@@ -1,0 +1,67 @@
+{
+    "info": {
+        "_postman_id": "8a3d4f5b-9c7e-4d2a-8b1c-3e6f7a8b9c0d",
+        "name": "Tarot API Collection",
+        "description": "Tarot uygulaması backend testleri için güncellenmiş collection.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Hello World",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:3000/",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Tarot Reading (3 Cards)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"cardCount\": 3,\n    \"userInfo\": {\n        \"name\": \"Ahmet\",\n        \"birthDate\": \"1990-05-15\",\n        \"horoscope\": \"Boğa\",\n        \"gender\": \"Erkek\",\n        \"relationship\": \"Bekar\"\n    }\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/tarot/reading",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "tarot",
+                        "reading"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        }
+    ]
+}
