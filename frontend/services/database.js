@@ -1,18 +1,29 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 /**
- * In-memory Database Service
- * In the future, this can be swapped with AsyncStorage, SQLite, or an API call.
+ * AsyncStorage Database Service
+ * Handles user data and tarot reading history.
  */
 
-let USERS_DB = {};
+const KEYS = {
+    USER: 'tarot_user',
+    READINGS_PREFIX: 'tarot_readings_'
+};
 
 export const DatabaseService = {
     /**
-     * Get user data by ID
+     * Get user data
      * @param {string} userId 
-     * @returns {object|null}
+     * @returns {Promise<object|null>}
      */
-    getUser: (userId) => {
-        return USERS_DB[userId] || null;
+    getUser: async (userId) => {
+        try {
+            const data = await AsyncStorage.getItem(`${KEYS.USER}_${userId}`);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            console.error('[DatabaseService] Error getting user:', error);
+            return null;
+        }
     },
 
     /**
@@ -20,28 +31,93 @@ export const DatabaseService = {
      * @param {string} userId 
      * @param {object} data 
      */
-    saveUser: (userId, data) => {
-        USERS_DB[userId] = {
-            ...USERS_DB[userId],
-            ...data,
-            updatedAt: new Date().toISOString(),
-        };
-        console.log(`[DatabaseService] User ${userId} saved:`, USERS_DB[userId]);
-        return USERS_DB[userId];
+    saveUser: async (userId, data) => {
+        try {
+            const existingUser = await DatabaseService.getUser(userId) || {};
+            const updatedUser = {
+                ...existingUser,
+                ...data,
+                id: userId,
+                updatedAt: new Date().toISOString(),
+            };
+            await AsyncStorage.setItem(`${KEYS.USER}_${userId}`, JSON.stringify(updatedUser));
+            console.log(`[DatabaseService] User ${userId} saved.`);
+            return updatedUser;
+        } catch (error) {
+            console.error('[DatabaseService] Error saving user:', error);
+            return null;
+        }
     },
 
     /**
-     * Delete user data
+     * Save a new tarot reading
+     * @param {string} userId 
+     * @param {object} readingData 
+     */
+    saveReading: async (userId, readingData) => {
+        try {
+            const readingsKey = `${KEYS.READINGS_PREFIX}${userId}`;
+            const existingReadingsJson = await AsyncStorage.getItem(readingsKey);
+            const readings = existingReadingsJson ? JSON.parse(existingReadingsJson) : [];
+
+            const newReading = {
+                id: Date.now().toString(),
+                ...readingData,
+                createdAt: new Date().toISOString(),
+            };
+
+            const updatedReadings = [newReading, ...readings].slice(0, 50); // Keep last 50 readings
+            await AsyncStorage.setItem(readingsKey, JSON.stringify(updatedReadings));
+
+            console.log(`[DatabaseService] New reading saved for ${userId}`);
+            return newReading;
+        } catch (error) {
+            console.error('[DatabaseService] Error saving reading:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Get all readings for a user
+     * @param {string} userId 
+     * @returns {Promise<Array>}
+     */
+    getReadings: async (userId) => {
+        try {
+            const readingsKey = `${KEYS.READINGS_PREFIX}${userId}`;
+            const data = await AsyncStorage.getItem(readingsKey);
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            console.error('[DatabaseService] Error getting readings:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Clear all readings for a user
      * @param {string} userId 
      */
-    deleteUser: (userId) => {
-        delete USERS_DB[userId];
+    clearReadings: async (userId) => {
+        try {
+            await AsyncStorage.removeItem(`${KEYS.READINGS_PREFIX}${userId}`);
+            console.log(`[DatabaseService] Readings cleared for ${userId}`);
+        } catch (error) {
+            console.error('[DatabaseService] Error clearing readings:', error);
+        }
     },
 
     /**
-     * Get all users (for debugging)
+     * Delete user data and history
+     * @param {string} userId 
      */
-    getAllUsers: () => {
-        return { ...USERS_DB };
+    deleteUser: async (userId) => {
+        try {
+            await AsyncStorage.removeItem(`${KEYS.USER}_${userId}`);
+            await AsyncStorage.removeItem(`${KEYS.READINGS_PREFIX}${userId}`);
+            console.log(`[DatabaseService] Data deleted for ${userId}`);
+        } catch (error) {
+            console.error('[DatabaseService] Error deleting data:', error);
+        }
     }
 };
+

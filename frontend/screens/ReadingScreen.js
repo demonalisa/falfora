@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Animated } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { DatabaseService } from '../services/database';
 
 // API Configuration - Replace with your machine's IP if testing on a real device
-const API_URL = 'http://192.168.1.177:3000'; // For Android Emulator
+const API_URL = 'http://192.168.1.167:3000'; // For Android Emulator
 // const API_URL = 'http://localhost:3000'; // For iOS Simulator
 
-export default function ReadingScreen({ user, userInfo, selectedType, onBack, onNavigate }) {
-    const [loading, setLoading] = useState(true);
-    const [readingData, setReadingData] = useState(null);
+export default function ReadingScreen({ user, userInfo, selectedType, existingReading, onBack, onNavigate }) {
+    const [loading, setLoading] = useState(!existingReading);
+    const [readingData, setReadingData] = useState(existingReading || null);
     const [error, setError] = useState(null);
 
     const fortuneNames = {
@@ -18,8 +19,10 @@ export default function ReadingScreen({ user, userInfo, selectedType, onBack, on
     };
 
     useEffect(() => {
-        fetchTarotReading();
-    }, []);
+        if (!existingReading) {
+            fetchTarotReading();
+        }
+    }, [existingReading]);
 
     const fetchTarotReading = async () => {
         try {
@@ -51,6 +54,16 @@ export default function ReadingScreen({ user, userInfo, selectedType, onBack, on
 
             const data = await response.json();
             setReadingData(data);
+
+            // Save reading to history
+            if (user?.id) {
+                await DatabaseService.saveReading(user.id, {
+                    type: selectedType,
+                    typeName: fortuneNames[selectedType] || 'Tarot Reading',
+                    cards: data.cards,
+                    reading: data.reading
+                });
+            }
         } catch (err) {
             console.error('Fetch Error:', err);
             setError(err.message);
@@ -121,7 +134,9 @@ export default function ReadingScreen({ user, userInfo, selectedType, onBack, on
 
                         <TouchableOpacity style={styles.saveButton} onPress={onBack}>
                             <LinearGradient colors={['#d4af37', '#b8860b']} style={styles.saveGradient}>
-                                <Text style={styles.saveButtonText}>Gratefully Received</Text>
+                                <Text style={styles.saveButtonText}>
+                                    {existingReading ? 'Return to Archives' : 'Gratefully Received'}
+                                </Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>

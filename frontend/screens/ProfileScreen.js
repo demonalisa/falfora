@@ -2,10 +2,8 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { DatabaseService } from '../services/database';
-
-export default function ProfileScreen({ user, onLogout, onNavigate }) {
-    const fullUser = DatabaseService.getUser(user.id) || {};
+export default function ProfileScreen({ user, userInfo, onLogout, onNavigate }) {
+    const fullUser = userInfo || {};
 
     const formatDate = (dateString) => {
         if (!dateString) return 'Not set';

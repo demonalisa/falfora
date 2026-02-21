@@ -1,25 +1,77 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { DatabaseService } from '../services/database';
 
-export default function HistoryScreen({ onNavigate }) {
-    // Placeholder data for future use
-    const historyItems = [
-        /* 
-        { id: '1', date: '2024-02-17', type: 'Daily Insight', outcome: 'The Sun' },
-        { id: '2', date: '2024-02-16', type: 'Galactic Spread', outcome: 'The Moon' },
-        */
-    ];
+export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
+    const [historyItems, setHistoryItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        if (!user?.id) {
+            setLoading(false);
+            return;
+        }
+        setLoading(true);
+        const readings = await DatabaseService.getReadings(user.id);
+        setHistoryItems(readings);
+        setLoading(false);
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('tr-TR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const handleClearHistory = () => {
+        Alert.alert(
+            "Clear History",
+            "Are you sure you want to delete all cosmic records? This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete All",
+                    style: "destructive",
+                    onPress: async () => {
+                        await DatabaseService.clearReadings(user.id);
+                        setHistoryItems([]);
+                    }
+                }
+            ]
+        );
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Reading History</Text>
+                <View style={{ width: 40 }} />
+                <Text style={styles.headerTitle}>Cosmic Records</Text>
+                {historyItems.length > 0 ? (
+                    <TouchableOpacity onPress={handleClearHistory} style={styles.clearButton}>
+                        <MaterialCommunityIcons name="trash-can-outline" size={24} color="#ff4d4d" />
+                    </TouchableOpacity>
+                ) : (
+                    <View style={{ width: 40 }} />
+                )}
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                {historyItems.length === 0 ? (
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#d4af37" />
+                    </View>
+                ) : historyItems.length === 0 ? (
                     <View style={styles.emptyState}>
                         <View style={styles.emptyIconContainer}>
                             <MaterialCommunityIcons name="book-outline" size={80} color="rgba(212, 175, 55, 0.2)" />
@@ -44,7 +96,38 @@ export default function HistoryScreen({ onNavigate }) {
                     </View>
                 ) : (
                     <View style={styles.listContainer}>
-                        {/* List items will go here in the future */}
+                        {historyItems.map((item) => (
+                            <TouchableOpacity
+                                key={item.id}
+                                style={styles.historyCard}
+                                onPress={() => onSelectReading(item)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.cardHeader}>
+                                    <View style={styles.typeTag}>
+                                        <MaterialCommunityIcons
+                                            name={item.type === '10_cards' ? 'star-shooting' : 'cards-playing-outline'}
+                                            size={16}
+                                            color="#d4af37"
+                                        />
+                                        <Text style={styles.typeText}>{item.typeName}</Text>
+                                    </View>
+                                    <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
+                                </View>
+
+                                <Text style={styles.outcomeText} numberOfLines={2}>
+                                    {item.cards.join(', ')}
+                                </Text>
+
+                                <Text style={styles.readingPreview} numberOfLines={3}>
+                                    {item.reading}
+                                </Text>
+
+                                <View style={styles.cardFooter}>
+                                    <MaterialCommunityIcons name="arrow-right" size={20} color="#d4af37" />
+                                </View>
+                            </TouchableOpacity>
+                        ))}
                     </View>
                 )}
             </ScrollView>
@@ -74,6 +157,7 @@ export default function HistoryScreen({ onNavigate }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#1c1022',
     },
     header: {
         flexDirection: 'row',
@@ -81,29 +165,101 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 16,
         paddingTop: 20,
-        marginBottom: 20,
+        marginBottom: 10,
     },
     headerTitle: {
         color: '#fff',
         fontSize: 20,
         fontWeight: 'bold',
         letterSpacing: 0.5,
+        flex: 1,
+        textAlign: 'center',
+    },
+    clearButton: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 77, 77, 0.1)',
     },
     scrollContent: {
         flexGrow: 1,
         paddingBottom: 100,
+        paddingHorizontal: 20,
+    },
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    listContainer: {
+        paddingTop: 10,
+    },
+    historyCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.15)',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    typeTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+        gap: 6,
+    },
+    typeText: {
+        color: '#d4af37',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    dateText: {
+        color: 'rgba(255, 255, 255, 0.4)',
+        fontSize: 11,
+    },
+    outcomeText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    readingPreview: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 13,
+        lineHeight: 18,
+        marginBottom: 16,
+    },
+    cardFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 4,
+    },
+    viewMoreText: {
+        display: 'none',
     },
     emptyState: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 40,
+        paddingHorizontal: 20,
         marginTop: 60,
     },
     emptyIconContainer: {
-        width: 160,
-        height: 160,
-        borderRadius: 80,
+        width: 140,
+        height: 140,
+        borderRadius: 70,
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         alignItems: 'center',
         justifyContent: 'center',
@@ -113,16 +269,16 @@ const styles = StyleSheet.create({
     },
     emptyTitle: {
         color: '#fff',
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 12,
     },
     emptySubtitle: {
         color: 'rgba(255, 255, 255, 0.5)',
-        fontSize: 16,
+        fontSize: 15,
         textAlign: 'center',
-        lineHeight: 24,
+        lineHeight: 22,
         marginBottom: 40,
     },
     startReadingButton: {
@@ -186,3 +342,4 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 4,
     }
 });
+

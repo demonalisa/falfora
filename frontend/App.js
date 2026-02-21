@@ -18,11 +18,15 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home', 'reading'
   const [sessionUser, setSessionUser] = useState(null); // { id: string, name: string }
   const [selectedFortuneType, setSelectedFortuneType] = useState(null);
+  const [selectedReading, setSelectedReading] = useState(null);
 
-  const checkUserAndNavigate = (user) => {
+  const [userInfo, setUserInfo] = useState(null);
+
+  const checkUserAndNavigate = async (user) => {
     setSessionUser(user);
-    const existingUser = DatabaseService.getUser(user.id);
+    const existingUser = await DatabaseService.getUser(user.id);
     if (existingUser) {
+      setUserInfo(existingUser);
       setCurrentScreen('home');
     } else {
       setCurrentScreen('onboarding');
@@ -47,9 +51,10 @@ export default function App() {
     checkUserAndNavigate(mockUser);
   };
 
-  const handleOnboardingComplete = (userData) => {
+  const handleOnboardingComplete = async (userData) => {
     if (sessionUser) {
-      DatabaseService.saveUser(sessionUser.id, userData);
+      const savedUser = await DatabaseService.saveUser(sessionUser.id, userData);
+      setUserInfo(savedUser);
       setCurrentScreen('welcome');
     }
   };
@@ -58,8 +63,15 @@ export default function App() {
     setCurrentScreen('home');
   };
 
+  const handleNavigate = (screen) => {
+    setSelectedReading(null);
+    setCurrentScreen(screen);
+  };
+
   const handleLogout = () => {
     setSessionUser(null);
+    setUserInfo(null);
+    setSelectedReading(null);
     setCurrentScreen('login');
   };
 
@@ -102,9 +114,10 @@ export default function App() {
             <HomeScreen
               user={sessionUser}
               onLogout={handleLogout}
-              onNavigate={(screen) => setCurrentScreen(screen)}
+              onNavigate={handleNavigate}
               onReadFortune={(type) => {
                 setSelectedFortuneType(type);
+                setSelectedReading(null);
                 setCurrentScreen('reading');
               }}
             />
@@ -112,22 +125,30 @@ export default function App() {
           {currentScreen === 'reading' && (
             <ReadingScreen
               user={sessionUser}
-              userInfo={DatabaseService.getUser(sessionUser?.id)}
+              userInfo={userInfo}
               selectedType={selectedFortuneType}
-              onBack={() => setCurrentScreen('home')}
-              onNavigate={(screen) => setCurrentScreen(screen)}
+              existingReading={selectedReading}
+              onBack={() => setCurrentScreen(selectedReading ? 'history' : 'home')}
+              onNavigate={handleNavigate}
             />
           )}
           {currentScreen === 'profile' && (
             <ProfileScreen
               user={sessionUser}
+              userInfo={userInfo}
               onLogout={handleLogout}
-              onNavigate={(screen) => setCurrentScreen(screen)}
+              onNavigate={handleNavigate}
             />
           )}
           {currentScreen === 'history' && (
             <HistoryScreen
-              onNavigate={(screen) => setCurrentScreen(screen)}
+              user={sessionUser}
+              onNavigate={handleNavigate}
+              onSelectReading={(reading) => {
+                setSelectedReading(reading);
+                setSelectedFortuneType(reading.type);
+                setCurrentScreen('reading');
+              }}
             />
           )}
         </SafeAreaView>
