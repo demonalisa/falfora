@@ -10,3 +10,15 @@ authentication yaklaşımları authorization
 jwt öğren
 cors
 https http rest
+
+Gelecekte Sunucuya Geçiş:
+İleride bir backend kurduğunda, sadece 
+services/database.js
+ içindeki AsyncStorage komutlarını 
+fetch()
+ veya axios çağrıları ile değiştirmen yeterli olacak. Ekranlardaki kodların hiçbiri değişmek zorunda kalmayacak.
+
+Uygulaman artık çok daha profesyonel ve "hafızası olan" bir yapıya sahip! Denemek için bir fal bakıp ardından History sekmesine geçebilirsin. ✨
+
+
+-------------------

@@ -1,4 +1,4 @@
-package com.anonymous.rndemo
+package com.falfora.app
 
 import android.app.Application
 import android.content.res.Configuration

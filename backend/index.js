@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { pickRandomCards } = require('./cards');
+const { checkJwt } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,7 +28,7 @@ app.get('/', (req, res) => {
  *   question?: string 
  * }
  */
-app.post('/api/tarot/reading', async (req, res) => {
+app.post('/api/tarot/reading', checkJwt, async (req, res) => {
     console.log("starting faling")
     const { cardCount = 3, userInfo } = req.body;
 

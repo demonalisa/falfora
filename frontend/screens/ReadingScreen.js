@@ -8,7 +8,7 @@ import { DatabaseService } from '../services/database';
 const API_URL = 'http://192.168.1.167:3000'; // For Android Emulator
 // const API_URL = 'http://localhost:3000'; // For iOS Simulator
 
-export default function ReadingScreen({ user, userInfo, selectedType, existingReading, onBack, onNavigate }) {
+export default function ReadingScreen({ user, userInfo, accessToken, selectedType, existingReading, onBack, onNavigate }) {
     const [loading, setLoading] = useState(!existingReading);
     const [readingData, setReadingData] = useState(existingReading || null);
     const [error, setError] = useState(null);
@@ -35,6 +35,7 @@ export default function ReadingScreen({ user, userInfo, selectedType, existingRe
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({
                     cardCount,
