@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { DatabaseService } from './services/database';
+import { AuthService } from './services/auth';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -19,6 +20,7 @@ export default function App() {
   const [sessionUser, setSessionUser] = useState(null); // { id: string, name: string }
   const [selectedFortuneType, setSelectedFortuneType] = useState(null);
   const [selectedReading, setSelectedReading] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
 
   const [userInfo, setUserInfo] = useState(null);
 
@@ -33,22 +35,14 @@ export default function App() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    console.log('DEBUG: Google Login Pressed');
-    const mockUser = { id: 'google_mock_user', name: 'Cosmic Traveler' };
-    checkUserAndNavigate(mockUser);
-  };
-
-  const handleAppleLogin = () => {
-    console.log('DEBUG: Apple Login Pressed');
-    const mockUser = { id: 'apple_mock_user', name: 'Celestial Being' };
-    checkUserAndNavigate(mockUser);
-  };
-
-  const handleFacebookLogin = () => {
-    console.log('DEBUG: Facebook Login Pressed');
-    const mockUser = { id: 'fb_mock_user', name: 'Star Dreamer' };
-    checkUserAndNavigate(mockUser);
+  const handleAuth0Login = async () => {
+    try {
+      const { user, accessToken: token } = await AuthService.login();
+      setAccessToken(token);
+      checkUserAndNavigate(user);
+    } catch (error) {
+      console.log('Login cancelled or failed:', error);
+    }
   };
 
   const handleOnboardingComplete = async (userData) => {
@@ -68,9 +62,15 @@ export default function App() {
     setCurrentScreen(screen);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.log('Logout error:', error);
+    }
     setSessionUser(null);
     setUserInfo(null);
+    setAccessToken(null);
     setSelectedReading(null);
     setCurrentScreen('login');
   };
@@ -93,9 +93,7 @@ export default function App() {
         <SafeAreaView style={styles.safeArea}>
           {currentScreen === 'login' && (
             <LoginScreen
-              onGoogleLogin={handleGoogleLogin}
-              onAppleLogin={handleAppleLogin}
-              onFacebookLogin={handleFacebookLogin}
+              onLogin={handleAuth0Login}
             />
           )}
           {currentScreen === 'onboarding' && (
@@ -126,6 +124,7 @@ export default function App() {
             <ReadingScreen
               user={sessionUser}
               userInfo={userInfo}
+              accessToken={accessToken}
               selectedType={selectedFortuneType}
               existingReading={selectedReading}
               onBack={() => setCurrentScreen(selectedReading ? 'history' : 'home')}

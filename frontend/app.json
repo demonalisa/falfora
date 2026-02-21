@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "rn-demo",
-    "slug": "rn-demo",
+    "name": "falfora",
+    "slug": "falfora",
+    "scheme": "com.falfora.app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.rn-demo"
+      "bundleIdentifier": "com.falfora.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,13 +23,19 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.rndemo"
+      "package": "com.falfora.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "react-native-auth0",
+        {
+          "domain": "dev-73wqskgqn01eddi4.us.auth0.com"
+        }
+      ]
     ]
   }
 }
