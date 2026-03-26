@@ -135,6 +135,7 @@ export default function App() {
             <ProfileScreen
               user={sessionUser}
               userInfo={userInfo}
+              setUserInfo={setUserInfo}
               onLogout={handleLogout}
               onNavigate={handleNavigate}
             />

@@ -39,8 +39,9 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 },
                 body: JSON.stringify({
                     cardCount,
+                    spreadName: fortuneNames[selectedType] || 'Tarot Reading',
                     userInfo: {
-                        name: user?.name,
+                        name: userInfo?.name || user?.name,
                         birthDate: userInfo?.birthDate,
                         horoscope: userInfo?.zodiac,
                         gender: userInfo?.gender || 'Belirtilmedi',

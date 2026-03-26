@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
  */
 app.post('/api/tarot/reading', checkJwt, async (req, res) => {
     console.log("starting faling")
-    const { cardCount = 3, userInfo } = req.body;
+    const { cardCount = 3, spreadName = "Genel", userInfo } = req.body;
 
     if (!userInfo) {
         return res.status(400).json({ error: 'User information (userInfo) is required.' });
@@ -40,9 +40,11 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
         // Kartları otomatik seçiyoruz
         const selectedCards = pickRandomCards(cardCount);
 
+        const readingType = `${cardCount} kartlık (${spreadName}) Tarot okuması`;
+
         const prompt = `
       Sen kadim bilgilere sahip, sezgileri çok güçlü bir Tarot Ustasısın. 
-      Aşağıdaki kullanıcı için özel bir 3 kartlık geçmiş, şimdi, gelecek olarak Tarot okuması yapacaksın:
+      Aşağıdaki kullanıcı için özel bir ${readingType} yapacaksın:
 
       Kullanıcı Bilgileri:
       - İsim: ${userInfo.name || 'Misafir'}
