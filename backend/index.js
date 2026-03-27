@@ -55,16 +55,46 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
 
       Seçilen Kartlar:
       ${selectedCards.join('\n- ')}
+
+      ÖNEMLİ FORMAT VE UZUNLUK KURALI:
+      Yazacağın fal metni TAM OLARAK ${cardCount + 3} paragraf uzunluğunda olmalıdır.
+      Kurgun şu sırayla ilerlemelidir:
+      1. Paragraf: Mistik ve etkileyici bir giriş yazısı.
+      Orta Paragraflar: Seçilen her bir kart için, kartın ismini veya numarasını ASLA zikretmeden, tamamen o kartın manasını anlatan 1 paragraf (Toplam ${cardCount} paragraf).
+      Sondan Bir Önceki Paragraf: Tüm kartların anlattıklarına yönelik genel bir özet.
+      Son Paragraf: Güzel, bilgece bir kapanış ve tavsiye yazısı.
+
+      KESİN YASAKLAR VE KURALLAR:
+      1) Paragraflara YALNIZCA GÖVDE METNİ ile doğrudan giriş yap. "Giriş:", "Özet:", "1. Kart Kılıç Ası:" vb. HİÇBİR BAŞLIK ETİKETİ VEYA KART ADI YAZILMAYACAK.
+      2) Geri dönüşün SADECE VE SADECE AŞAĞIDAKİ GİBİ GEÇERLİ BİR "JSON" DİZİSİ OLMALIDIR. Başında veya sonunda markdown (md) etiketleri veya yazılı metin KESİNLİKLE koyma. Sadece köşeli parantezli bir array dön.
+
+      Örnek Beklenen Çıktı Formatı:
+      [
+        "Mistik giriş yazısı buraya gelecek...",
+        "İlk kartın sadece yorumu buraya gelecek...",
+        "İkinci kartın sadece yorumu buraya gelecek...",
+        "Falın özeti buraya gelecek...",
+        "Kapanış tavsiyesi buraya gelecek..."
+      ]
     `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text();
+        const text = response.text().replace(/```json/gi, '').replace(/```/g, '').trim();
+
+        let slidesArray;
+        try {
+            slidesArray = JSON.parse(text);
+        } catch (e) {
+            console.error('JSON Parse Error, falling back to string:', e, text);
+            // Fallback just in case
+            slidesArray = [text];
+        }
 
         res.json({
             user: userInfo.name,
             cards: selectedCards,
-            reading: text
+            reading: slidesArray
         });
     } catch (error) {
         console.error('Gemini Error:', error);
