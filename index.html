@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     
     <title>Falfora: Kozmik Tarot Rehberi</title>
     
@@ -21,14 +21,19 @@
     <meta name="theme-color" content="#1c1022" />
 
     <style>
-      body {
+      html, body, #root {
         margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* Dikey kaydırmayı global olarak engelle */
+        position: fixed; /* Ekranı yerine çivile */
         background-color: #1c1022;
+        -webkit-overflow-scrolling: touch;
       }
       #root {
         display: flex;
-        flex: 1;
-        min-height: 100vh;
+        flex-direction: column;
       }
     </style>
   <link rel="icon" href="/falfora/favicon.ico" /></head>
@@ -37,6 +42,6 @@
       Bu uygulamayı çalıştırmak için JavaScript'i etkinleştirmeniz gerekmektedir.
     </noscript>
     <div id="root"></div>
-  <script src="/falfora/_expo/static/js/web/index-f0334fbf13e528a0594882aa726dffb6.js" defer></script>
+  <script src="/falfora/_expo/static/js/web/index-102e91bcaeac26eef1243bc51daa12f7.js" defer></script>
 </body>
 </html>
