@@ -5,9 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
 import { getCardImage } from '../utils/cardImageMap';
 
-// API Configuration - Replace with your machine's IP if testing on a real device
-const API_URL = 'http://192.168.1.167:3000'; // For Android Emulator
-// const API_URL = 'http://localhost:3000'; // For iOS Simulator
+// API Configuration - Production (Render Cloud)
+const API_URL = 'https://falfora-api.onrender.com';
 
 export default function ReadingScreen({ user, userInfo, accessToken, selectedType, existingReading, onBack, onNavigate }) {
     const [loading, setLoading] = useState(!existingReading);
