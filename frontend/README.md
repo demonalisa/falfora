@@ -22,3 +22,9 @@ Uygulaman artık çok daha profesyonel ve "hafızası olan" bir yapıya sahip! D
 
 
 -------------------
+
+https://demonalisa.github.io/falfora/, https://demonalisa.github.io/falfora, org.reactjs.native.example.auth0reactnativesample.auth0://dev-73wqskgqn01eddi4.us.auth0.com/ios/org.reactjs.native.example.auth0reactnativesample/callback, com.auth0reactnativesample.auth0://dev-73wqskgqn01eddi4.us.auth0.com/android/com.auth0reactnativesample/callback
+
+
+expo web build command npx expo export -p web
+pages publish command npx gh-pages -d dist
