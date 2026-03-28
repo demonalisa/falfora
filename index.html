@@ -1,36 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>falfora</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
+    
+    <title>Falfora: Kozmik Tarot Rehberi</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    
+    <!-- iOS / Safari PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Falfora" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="favicon.png" />
+    <meta name="theme-color" content="#1c1022" />
+
+    <style>
       body {
-        height: 100%;
+        margin: 0;
+        background-color: #1c1022;
       }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
       #root {
         display: flex;
-        height: 100%;
         flex: 1;
+        min-height: 100vh;
       }
     </style>
   <link rel="icon" href="/falfora/favicon.ico" /></head>
-
   <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
     <noscript>
-      You need to enable JavaScript to run this app.
+      Bu uygulamayı çalıştırmak için JavaScript'i etkinleştirmeniz gerekmektedir.
     </noscript>
-    <!-- The root element for your Expo app. -->
     <div id="root"></div>
   <script src="/falfora/_expo/static/js/web/index-a85d520f11e6c68421d09fb05e6b4dd9.js" defer></script>
 </body>
