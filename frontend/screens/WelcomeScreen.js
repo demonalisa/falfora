@@ -85,21 +85,22 @@ const styles = StyleSheet.create({
     },
     title: {
         color: '#fff',
-        fontSize: 32,
-        fontWeight: 'bold',
+        fontSize: Platform.OS === 'web' ? 44 : 32,
+        fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
         marginBottom: 24,
     },
     message: {
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 18,
+        fontFamily: 'Inter_400Regular',
         textAlign: 'center',
         lineHeight: 28,
         marginBottom: 48,
     },
     userName: {
         color: '#d4af37',
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
     startButton: {
         width: '100%',
@@ -122,6 +123,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#1c1022',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
 });

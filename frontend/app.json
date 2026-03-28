@@ -39,7 +39,8 @@
           "domain": "dev-73wqskgqn01eddi4.us.auth0.com",
           "customScheme": "com.falfora.app"
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }

@@ -25,6 +25,41 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     const [selectedZodiac, setSelectedZodiac] = useState('Aslan');
     const [relationshipStatus, setRelationshipStatus] = useState('İlişkisi Var');
     const [showZodiacScrollHint, setShowZodiacScrollHint] = useState(true);
+    const [dateError, setDateError] = useState(false);
+    const [zodiacWarning, setZodiacWarning] = useState(null);
+    const webDateInputRef = useRef(null);
+
+    const calculateZodiac = (date) => {
+        if (!date) return null;
+        const d = new Date(date);
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+
+        if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Koç';
+        if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Boğa';
+        if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'İkizler';
+        if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Yengeç';
+        if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Aslan';
+        if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Başak';
+        if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Terazi';
+        if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Akrep';
+        if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Yay';
+        if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Oğlak';
+        if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Kova';
+        if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Balık';
+        return null;
+    };
+
+    useEffect(() => {
+        if (birthDate) {
+            const calculated = calculateZodiac(birthDate);
+            if (calculated && calculated !== selectedZodiac) {
+                setZodiacWarning(calculated);
+            } else {
+                setZodiacWarning(null);
+            }
+        }
+    }, [birthDate, selectedZodiac]);
 
     // Animation for the scroll hint arrow
     const bobAnim = useRef(new Animated.Value(0)).current;
@@ -59,7 +94,10 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     const onDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
             setShowDatePicker(false);
-            if (selectedDate) setBirthDate(selectedDate);
+            if (selectedDate) {
+                setBirthDate(selectedDate);
+                setDateError(false);
+            }
         } else {
             if (selectedDate) setTempDate(selectedDate);
         }
@@ -67,6 +105,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 
     const handleConfirmDate = () => {
         setBirthDate(tempDate);
+        setDateError(false);
         setShowDatePicker(false);
     };
 
@@ -78,7 +117,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 
     const handleContinue = () => {
         if (!birthDate) {
-            Alert.alert("Hata", "Lütfen yıldızlarla uyumlanmak için doğum tarihinizi seçin.");
+            setDateError(true);
             return;
         }
         onComplete({
@@ -114,33 +153,48 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                             onPress={() => {
                                 if (Platform.OS !== 'web') {
                                     setShowDatePicker(true);
+                                } else if (webDateInputRef.current) {
+                                    // Modern way to show native picker on web
+                                    try {
+                                        if (typeof webDateInputRef.current.showPicker === 'function') {
+                                            webDateInputRef.current.showPicker();
+                                        } else {
+                                            webDateInputRef.current.click();
+                                        }
+                                    } catch (e) {
+                                        webDateInputRef.current.click();
+                                    }
                                 }
                             }}
-                            activeOpacity={Platform.OS === 'web' ? 1 : 0.7}
+                            activeOpacity={Platform.OS === 'web' ? 0.6 : 0.7}
                         >
-                            <View style={styles.textInput}>
+                            <View style={[styles.textInput, dateError && styles.textInputError]}>
                                 <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
                                     {formatDate(birthDate)}
                                 </Text>
                             </View>
                             <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
                             
-                            {/* Native date picker for web (hidden overlay) */}
+                            {/* Web-specific native date picker (hidden) */}
                             {Platform.OS === 'web' && (
                                 <input
+                                    ref={webDateInputRef}
                                     type="date"
                                     style={{
                                         position: 'absolute',
                                         top: 0, left: 0, right: 0, bottom: 0,
                                         opacity: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        cursor: 'pointer'
+                                        width: 0,
+                                        height: 0,
+                                        pointerEvents: 'none'
                                     }}
                                     max={new Date().toISOString().split('T')[0]}
                                     onChange={(e) => {
                                         const date = new Date(e.target.value);
-                                        if (!isNaN(date.getTime())) setBirthDate(date);
+                                        if (!isNaN(date.getTime())) {
+                                            setBirthDate(date);
+                                            setDateError(false);
+                                        }
                                     }}
                                 />
                             )}
@@ -186,13 +240,30 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 maximumDate={new Date()}
                             />
                         )}
+
+                        {dateError && (
+                            <Text style={styles.errorText}>Lütfen yıldızlarla uyumlanmak için doğum tarihinizi seçin.</Text>
+                        )}
                     </View>
 
-                    {/* Zodiac grid (Now scrollable) */}
                     <View style={styles.inputGroup}>
                         <View style={styles.rowBetween}>
                             <Text style={styles.inputLabel}>Burç</Text>
                         </View>
+
+                        {zodiacWarning && (
+                            <View style={styles.warningBox}>
+                                <View style={styles.warningHeader}>
+                                    <MaterialCommunityIcons name="star-shooting" size={16} color="#d4af37" />
+                                    <Text style={styles.warningTitle}>Kozmik Uyarı</Text>
+                                </View>
+                                <Text style={styles.warningText}>
+                                    Seçtiğiniz tarihe göre burcunuz <Text style={styles.warningSpan}>{zodiacWarning}</Text> olarak görünüyor.
+                                    Yine de kendinizi seçtiğiniz burca daha yakın hissediyorsanız devam edebilirsiniz.
+                                </Text>
+                            </View>
+                        )}
+
                         <View style={styles.zodiacScrollWrapper}>
                             <ScrollView
                                 horizontal
@@ -301,7 +372,7 @@ const styles = StyleSheet.create({
     onboardingHeaderTitle: {
         color: 'white',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_600SemiBold',
         flex: 1,
         textAlign: 'center',
     },
@@ -315,7 +386,7 @@ const styles = StyleSheet.create({
     progressLabel: {
         color: 'rgba(255, 255, 255, 0.7)',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         letterSpacing: 2,
         marginBottom: 8,
         textTransform: 'uppercase',
@@ -338,7 +409,7 @@ const styles = StyleSheet.create({
     onboardingTitle: {
         color: 'white',
         fontSize: 28,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
         marginBottom: 8,
         letterSpacing: -0.5,
@@ -346,6 +417,7 @@ const styles = StyleSheet.create({
     onboardingSubtitle: {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 16,
+        fontFamily: 'Inter_400Regular',
         textAlign: 'center',
         lineHeight: 22,
     },
@@ -358,7 +430,7 @@ const styles = StyleSheet.create({
     inputLabel: {
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         letterSpacing: 1.5,
         textTransform: 'uppercase',
     },
@@ -465,10 +537,11 @@ const styles = StyleSheet.create({
     pillText: {
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 14,
+        fontFamily: 'Inter_400Regular',
     },
     pillTextActive: {
         color: '#d4af37',
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     onboardingFooter: {
         position: 'absolute',
@@ -523,6 +596,48 @@ const styles = StyleSheet.create({
     continueButtonText: {
         color: '#1c1022',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
+    },
+    errorText: {
+        color: '#ff4d4d',
+        fontSize: 12,
+        fontFamily: 'Inter_500Medium',
+        marginTop: 8,
+        marginLeft: 4,
+    },
+    textInputError: {
+        borderColor: '#ff4d4d',
+        backgroundColor: 'rgba(255, 77, 77, 0.05)',
+    },
+    warningBox: {
+        backgroundColor: 'rgba(212, 175, 55, 0.08)',
+        borderRadius: 12,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.3)',
+        marginBottom: 16,
+        marginTop: 4,
+    },
+    warningHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 4,
+    },
+    warningTitle: {
+        color: '#d4af37',
+        fontSize: 12,
+        fontFamily: 'Inter_700Bold',
+        letterSpacing: 0.5,
+    },
+    warningText: {
+        color: 'rgba(255, 255, 255, 0.7)',
+        fontSize: 12,
+        lineHeight: 18,
+        fontFamily: 'Inter_400Regular',
+    },
+    warningSpan: {
+        color: '#d4af37',
+        fontFamily: 'Inter_700Bold',
     },
 });

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen({ onLogin, onDevLogin }) {
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async () => {
@@ -68,7 +68,15 @@ export default function LoginScreen({ onLogin }) {
                     </LinearGradient>
                 </TouchableOpacity>
 
-                <Text style={styles.loginHint}>Google, Apple, E-posta ve daha fazlasıyla giriş yapın</Text>
+                {__DEV__ && (
+                    <TouchableOpacity 
+                        style={styles.devSkipButton} 
+                        onPress={onDevLogin}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.devSkipText}>Geliştirici Girişi (Auth0 Atla)</Text>
+                    </TouchableOpacity>
+                )}
             </View>
 
             <View style={styles.footer}>
@@ -123,10 +131,10 @@ const styles = StyleSheet.create({
     },
     mainTitle: {
         color: '#fff',
-        fontSize: 36,
-        fontWeight: 'bold',
+        fontSize: Platform.OS === 'web' ? 48 : 36,
+        fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
-        lineHeight: 44,
+        lineHeight: Platform.OS === 'web' ? 56 : 44,
         marginBottom: 10,
     },
     accentText: {
@@ -135,6 +143,7 @@ const styles = StyleSheet.create({
     subtitle: {
         color: 'rgba(255, 255, 255, 0.7)',
         fontSize: 16,
+        fontFamily: 'Inter_400Regular',
         textAlign: 'center',
         lineHeight: 24,
         paddingHorizontal: 10,
@@ -164,7 +173,7 @@ const styles = StyleSheet.create({
     loginButtonText: {
         color: '#1c1022',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
     loginHint: {
         color: 'rgba(255, 255, 255, 0.4)',
@@ -179,12 +188,26 @@ const styles = StyleSheet.create({
     footerText: {
         color: 'rgba(255, 255, 255, 0.4)',
         fontSize: 12,
+        fontFamily: 'Inter_400Regular',
         textAlign: 'center',
         lineHeight: 18,
     },
     linkText: {
         color: 'rgba(212, 175, 55, 0.6)',
         textDecorationLine: 'underline',
+    },
+    devSkipButton: {
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.3)',
+    },
+    devSkipText: {
+        color: '#d4af37',
+        fontSize: 12,
+        fontFamily: 'Inter_600SemiBold',
     },
 });
 

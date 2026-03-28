@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: '#fff',
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
         letterSpacing: 0.5,
         flex: 1,
         textAlign: 'center',
@@ -222,21 +222,23 @@ const styles = StyleSheet.create({
     typeText: {
         color: '#d4af37',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     dateText: {
         color: 'rgba(255, 255, 255, 0.4)',
         fontSize: 11,
+        fontFamily: 'Inter_400Regular',
     },
     outcomeText: {
         color: '#fff',
         fontSize: 15,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_600SemiBold',
         marginBottom: 8,
     },
     readingPreview: {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 13,
+        fontFamily: 'Inter_400Regular',
         lineHeight: 18,
         marginBottom: 16,
     },
@@ -270,13 +272,14 @@ const styles = StyleSheet.create({
     emptyTitle: {
         color: '#fff',
         fontSize: 22,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
         marginBottom: 12,
     },
     emptySubtitle: {
         color: 'rgba(255, 255, 255, 0.5)',
         fontSize: 15,
+        fontFamily: 'Inter_400Regular',
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: 40,
@@ -297,7 +300,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#1c1022',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
     bottomNav: {
         position: 'absolute',

@@ -135,9 +135,9 @@ const styles = StyleSheet.create({
     },
     mainTitle: {
         color: '#fff',
-        fontSize: 32,
-        fontWeight: 'bold',
-        lineHeight: 40,
+        fontSize: Platform.OS === 'web' ? 44 : 32,
+        fontFamily: 'Outfit_700Bold',
+        lineHeight: Platform.OS === 'web' ? 52 : 40,
         marginBottom: 12,
     },
     accentText: {
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     subtitle: {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 16,
+        fontFamily: 'Inter_400Regular',
         lineHeight: 24,
     },
     cardContainer: {
@@ -182,12 +183,13 @@ const styles = StyleSheet.create({
     cardTitle: {
         color: '#fff',
         fontSize: 18, // Smaller title
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_600SemiBold',
         marginBottom: 2,
     },
     cardDesc: {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 12, // Smaller description
+        fontFamily: 'Inter_400Regular',
         lineHeight: 16,
     },
     cardBadge: {
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
     badgeText: {
         color: '#d4af37',
         fontSize: 9,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         letterSpacing: 0.5,
     },
     checkIcon: {
@@ -221,6 +223,7 @@ const styles = StyleSheet.create({
         height: 56, // Slightly smaller
         borderRadius: 16,
         overflow: 'hidden',
+        cursor: Platform.OS === 'web' ? 'pointer' : 'auto',
     },
     readButtonDisabled: {
         opacity: 0.5,
@@ -235,7 +238,7 @@ const styles = StyleSheet.create({
     readButtonText: {
         color: '#1c1022',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
     readButtonTextDisabled: {
         color: 'rgba(255, 255, 255, 0.5)',
@@ -266,12 +269,12 @@ const styles = StyleSheet.create({
     navText: {
         color: 'rgba(255, 255, 255, 0.4)',
         fontSize: 11,
-        fontWeight: '500',
+        fontFamily: 'Inter_500Medium',
     },
     navTextActive: {
         color: '#d4af37',
         fontSize: 11,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     activeIndicator: {
         position: 'absolute',

@@ -344,15 +344,16 @@ const styles = StyleSheet.create({
         padding: 24,
     },
     loadingText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
+        color: '#d4af37',
+        fontSize: 20,
+        fontFamily: 'Outfit_600SemiBold',
         marginTop: 24,
         textAlign: 'center',
     },
     loadingSubtext: {
         color: 'rgba(255, 255, 255, 0.5)',
         fontSize: 14,
+        fontFamily: 'Inter_400Regular',
         marginTop: 8,
         textAlign: 'center',
     },
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
     mainContent: {
         flex: 1,
@@ -385,7 +386,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         letterSpacing: 1.5,
         textTransform: 'uppercase',
         marginBottom: 8,
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
     readingHeaderText: {
         color: '#d4af37',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_600SemiBold',
         flexShrink: 1, // Prevents text overflow if extremely long
     },
     divider: {
@@ -455,6 +456,7 @@ const styles = StyleSheet.create({
     readingText: {
         color: 'rgba(255, 255, 255, 0.9)',
         fontSize: 16,
+        fontFamily: 'Inter_400Regular',
         lineHeight: 26,
         textAlign: 'left',
     },
@@ -506,7 +508,7 @@ const styles = StyleSheet.create({
     saveButtonText: {
         color: '#1c1022',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
     errorContainer: {
         alignItems: 'center',
@@ -560,12 +562,12 @@ const styles = StyleSheet.create({
     navText: {
         color: 'rgba(255, 255, 255, 0.4)',
         fontSize: 11,
-        fontWeight: '500',
+        fontFamily: 'Inter_500Medium',
     },
     navTextActive: {
         color: '#d4af37',
         fontSize: 11,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     activeIndicator: {
         position: 'absolute',
@@ -597,7 +599,7 @@ const styles = StyleSheet.create({
     modalCardName: {
         color: '#d4af37',
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
         marginBottom: 8,
     },

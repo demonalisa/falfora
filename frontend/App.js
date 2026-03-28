@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold } from '@expo-google-fonts/outfit';
 import { DatabaseService } from './services/database';
 import { AuthService } from './services/auth';
 
@@ -16,6 +19,17 @@ import ProfileScreen from './screens/ProfileScreen';
 import HistoryScreen from './screens/HistoryScreen';
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Outfit_700Bold,
+  });
+
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home', 'reading'
   const [sessionUser, setSessionUser] = useState(null); // { id: string, name: string }
   const [selectedFortuneType, setSelectedFortuneType] = useState(null);
@@ -111,15 +125,17 @@ export default function App() {
         </View>
 
         <SafeAreaView style={styles.safeArea}>
-          {isInitializing ? (
+          {isInitializing || !fontsLoaded ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              {/* Optional: Add a loading spinner or splash screen component */}
+              <ActivityIndicator size="large" color="#d4af37" />
+              {fontsLoaded && <Text style={{ color: '#d4af37', marginTop: 20, fontFamily: 'Inter_400Regular' }}>Evrenle uyumlanıyor...</Text>}
             </View>
           ) : (
             <>
               {currentScreen === 'login' && (
                 <LoginScreen
                   onLogin={handleAuth0Login}
+                  onDevLogin={() => checkUserAndNavigate({ id: 'dev_user_123', name: 'Geliştirici' })}
                 />
               )}
               {currentScreen === 'onboarding' && (

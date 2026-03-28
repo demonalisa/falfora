@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Modal, TextInput } from 'react-native';
+import React, { useState, useRef } from 'react';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -22,6 +22,7 @@ const ZODIAC_SIGNS = [
 
 export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, onNavigate }) {
     const fullUser = userInfo || {};
+    const webDateInputRef = useRef(null);
 
     const [isEditing, setIsEditing] = useState(false);
     
@@ -150,7 +151,23 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                                 <Text style={styles.inputLabel}>Doğum Tarihi</Text>
                                 <TouchableOpacity
                                     style={styles.textInputWrapper}
-                                    onPress={() => setShowDatePicker(true)}
+                                    onPress={() => {
+                                        if (Platform.OS !== 'web') {
+                                            setShowDatePicker(true);
+                                        } else if (webDateInputRef.current) {
+                                            // Modern way to show native picker on web
+                                            try {
+                                                if (typeof webDateInputRef.current.showPicker === 'function') {
+                                                    webDateInputRef.current.showPicker();
+                                                } else {
+                                                    webDateInputRef.current.click();
+                                                }
+                                            } catch (e) {
+                                                webDateInputRef.current.click();
+                                            }
+                                        }
+                                    }}
+                                    activeOpacity={Platform.OS === 'web' ? 0.6 : 0.7}
                                 >
                                     <View style={styles.textInputBox}>
                                         <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
@@ -158,6 +175,27 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                                         </Text>
                                     </View>
                                     <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
+                                    
+                                    {/* Web-specific native date picker (hidden) */}
+                                    {Platform.OS === 'web' && (
+                                        <input
+                                            ref={webDateInputRef}
+                                            type="date"
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0, left: 0, right: 0, bottom: 0,
+                                                opacity: 0,
+                                                width: 0,
+                                                height: 0,
+                                                pointerEvents: 'none'
+                                            }}
+                                            max={new Date().toISOString().split('T')[0]}
+                                            onChange={(e) => {
+                                                const date = new Date(e.target.value);
+                                                if (!isNaN(date.getTime())) setBirthDate(date);
+                                            }}
+                                        />
+                                    )}
                                 </TouchableOpacity>
 
                                 {/* iOS Date Picker Modal */}
@@ -351,7 +389,7 @@ const styles = StyleSheet.create({
     userName: {
         color: '#fff',
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
         marginBottom: 4,
     },
     userNameInput: {
@@ -374,7 +412,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 13,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         textTransform: 'uppercase',
         letterSpacing: 1.5,
         marginBottom: 12,
@@ -383,7 +421,7 @@ const styles = StyleSheet.create({
     sectionTitleNoMargin: {
         color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 13,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
         textTransform: 'uppercase',
         letterSpacing: 1.5,
         marginLeft: 4,
@@ -398,17 +436,17 @@ const styles = StyleSheet.create({
     editActionText: {
         color: '#d4af37',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     saveActionText: {
         color: '#4CAF50',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     cancelActionText: {
         color: 'rgba(255, 255, 255, 0.5)',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
     infoCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -442,12 +480,13 @@ const styles = StyleSheet.create({
     infoLabel: {
         color: 'rgba(255, 255, 255, 0.4)',
         fontSize: 12,
+        fontFamily: 'Inter_400Regular',
         marginBottom: 2,
     },
     infoValue: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '500',
+        fontFamily: 'Inter_500Medium',
     },
     actionButton: {
         flexDirection: 'row',
