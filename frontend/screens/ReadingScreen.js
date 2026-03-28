@@ -5,8 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
 import { getCardImage } from '../utils/cardImageMap';
 
-// API Configuration - Production (Render Cloud)
-const API_URL = 'https://falfora-api.onrender.com';
+// API Configuration - Primary is Render Cloud environment variable, fallback to hardcoded production URL
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://falfora-api.onrender.com';
 
 export default function ReadingScreen({ user, userInfo, accessToken, selectedType, existingReading, onBack, onNavigate }) {
     const [loading, setLoading] = useState(!existingReading);

@@ -1,4 +1,15 @@
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+
+// Render mounts secret files at /etc/secrets/ by default if specified.
+// We check for /etc/secrets/.env first, then fallback to local .env
+const secretPath = '/etc/secrets/.env';
+if (fs.existsSync(secretPath)) {
+    require('dotenv').config({ path: secretPath });
+} else {
+    require('dotenv').config();
+}
+
 const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -8,8 +19,21 @@ const { checkJwt } = require('./middleware/auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Verify required environment variables
+const requiredEnv = ['GEMINI_API_KEY', 'AUTH0_DOMAIN', 'AUTH0_AUDIENCE'];
+const missingEnv = requiredEnv.filter(k => !process.env[k]);
+
+if (missingEnv.length > 0) {
+    console.warn(`[WARNING] Missing environment variables: ${missingEnv.join(', ')}`);
+    console.warn('Backend may not function correctly. Ensure these are set in Render (Environment or Secret Files).');
+}
+
 // Gemini Configuration
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+if (!process.env.GEMINI_API_KEY) {
+    console.error('[ERROR] GEMINI_API_KEY is not defined! API calls will fail.');
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key');
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 app.use(cors());

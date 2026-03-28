@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +23,26 @@ export default function App() {
   const [accessToken, setAccessToken] = useState(null);
 
   const [userInfo, setUserInfo] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const session = await AuthService.checkSession();
+        if (session) {
+          const { user, accessToken: token } = session;
+          setAccessToken(token);
+          await checkUserAndNavigate(user);
+        }
+      } catch (error) {
+        console.log('[App] Session check error:', error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    initAuth();
+  }, []);
 
   const checkUserAndNavigate = async (user) => {
     setSessionUser(user);
@@ -91,65 +111,73 @@ export default function App() {
         </View>
 
         <SafeAreaView style={styles.safeArea}>
-          {currentScreen === 'login' && (
-            <LoginScreen
-              onLogin={handleAuth0Login}
-            />
-          )}
-          {currentScreen === 'onboarding' && (
-            <OnboardingScreen
-              onComplete={handleOnboardingComplete}
-              onBack={() => setCurrentScreen('login')}
-            />
-          )}
-          {currentScreen === 'welcome' && (
-            <WelcomeScreen
-              user={sessionUser}
-              onStart={handleWelcomeComplete}
-            />
-          )}
-          {currentScreen === 'home' && (
-            <HomeScreen
-              user={sessionUser}
-              onLogout={handleLogout}
-              onNavigate={handleNavigate}
-              onReadFortune={(type) => {
-                setSelectedFortuneType(type);
-                setSelectedReading(null);
-                setCurrentScreen('reading');
-              }}
-            />
-          )}
-          {currentScreen === 'reading' && (
-            <ReadingScreen
-              user={sessionUser}
-              userInfo={userInfo}
-              accessToken={accessToken}
-              selectedType={selectedFortuneType}
-              existingReading={selectedReading}
-              onBack={() => setCurrentScreen(selectedReading ? 'history' : 'home')}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentScreen === 'profile' && (
-            <ProfileScreen
-              user={sessionUser}
-              userInfo={userInfo}
-              setUserInfo={setUserInfo}
-              onLogout={handleLogout}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentScreen === 'history' && (
-            <HistoryScreen
-              user={sessionUser}
-              onNavigate={handleNavigate}
-              onSelectReading={(reading) => {
-                setSelectedReading(reading);
-                setSelectedFortuneType(reading.type);
-                setCurrentScreen('reading');
-              }}
-            />
+          {isInitializing ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              {/* Optional: Add a loading spinner or splash screen component */}
+            </View>
+          ) : (
+            <>
+              {currentScreen === 'login' && (
+                <LoginScreen
+                  onLogin={handleAuth0Login}
+                />
+              )}
+              {currentScreen === 'onboarding' && (
+                <OnboardingScreen
+                  onComplete={handleOnboardingComplete}
+                  onBack={() => setCurrentScreen('login')}
+                />
+              )}
+              {currentScreen === 'welcome' && (
+                <WelcomeScreen
+                  user={sessionUser}
+                  onStart={handleWelcomeComplete}
+                />
+              )}
+              {currentScreen === 'home' && (
+                <HomeScreen
+                  user={sessionUser}
+                  onLogout={handleLogout}
+                  onNavigate={handleNavigate}
+                  onReadFortune={(type) => {
+                    setSelectedFortuneType(type);
+                    setSelectedReading(null);
+                    setCurrentScreen('reading');
+                  }}
+                />
+              )}
+              {currentScreen === 'reading' && (
+                <ReadingScreen
+                  user={sessionUser}
+                  userInfo={userInfo}
+                  accessToken={accessToken}
+                  selectedType={selectedFortuneType}
+                  existingReading={selectedReading}
+                  onBack={() => setCurrentScreen(selectedReading ? 'history' : 'home')}
+                  onNavigate={handleNavigate}
+                />
+              )}
+              {currentScreen === 'profile' && (
+                <ProfileScreen
+                  user={sessionUser}
+                  userInfo={userInfo}
+                  setUserInfo={setUserInfo}
+                  onLogout={handleLogout}
+                  onNavigate={handleNavigate}
+                />
+              )}
+              {currentScreen === 'history' && (
+                <HistoryScreen
+                  user={sessionUser}
+                  onNavigate={handleNavigate}
+                  onSelectReading={(reading) => {
+                    setSelectedReading(reading);
+                    setSelectedFortuneType(reading.type);
+                    setCurrentScreen('reading');
+                  }}
+                />
+              )}
+            </>
           )}
         </SafeAreaView>
       </View>

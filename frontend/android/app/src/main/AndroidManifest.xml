@@ -33,6 +33,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="com.falfora.app.auth0" android:pathPrefix="/android/com.falfora.app/callback" android:host="dev-73wqskgqn01eddi4.us.auth0.com"/>
+        <data android:scheme="com.falfora.app" android:pathPrefix="/android/com.falfora.app/callback" android:host="dev-73wqskgqn01eddi4.us.auth0.com"/>
       </intent-filter>
     </activity>
   </application>
