@@ -5,8 +5,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
 import { getCardImage } from '../utils/cardImageMap';
 
-// API Configuration - Primary is Render Cloud environment variable, fallback to hardcoded production URL
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://falfora-api.onrender.com';
+// Akıllı API Yapılandırması: Yerelde localhost, yayında Render adresi kullanılır.
+const getApiUrl = () => {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return 'http://localhost:3000';
+    }
+    return 'https://falfora-api.onrender.com';
+};
+
+const API_URL = getApiUrl();
 
 export default function ReadingScreen({ user, userInfo, accessToken, selectedType, existingReading, onBack, onNavigate }) {
     const [loading, setLoading] = useState(!existingReading);
@@ -87,13 +94,47 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
 
     const handleNext = () => {
         if (currentPage < paragraphs.length - 1) {
-            scrollViewRef.current?.scrollTo({ x: (currentPage + 1) * slideWidth, animated: true });
+            const nextIndex = currentPage + 1;
+            // 1. Durumu hemen güncelle (Başlık ve Highlight için)
+            setCurrentPage(nextIndex);
+            
+            // 2. Alt slaytı kaydır
+            scrollViewRef.current?.scrollTo({ x: nextIndex * slideWidth, animated: true });
+            
+            // 3. Üst kart listesini senkronize et (Aktif kartı merkeze al)
+            if (cardsScrollViewRef.current) {
+                const cardWidth = 74; // 64 width + 10 margin
+                const halfScreen = screenWidth / 2;
+                const halfCard = cardWidth / 2;
+                const targetTopX = ((nextIndex - 1) * cardWidth) - halfScreen + halfCard;
+                cardsScrollViewRef.current.scrollTo({
+                    x: Math.max(0, targetTopX),
+                    animated: true
+                });
+            }
         }
     };
 
     const handlePrev = () => {
         if (currentPage > 0) {
-            scrollViewRef.current?.scrollTo({ x: (currentPage - 1) * slideWidth, animated: true });
+            const prevIndex = currentPage - 1;
+            // 1. Durumu hemen güncelle
+            setCurrentPage(prevIndex);
+            
+            // 2. Alt slaytı kaydır
+            scrollViewRef.current?.scrollTo({ x: prevIndex * slideWidth, animated: true });
+            
+            // 3. Üst kart listesini senkronize et
+            if (cardsScrollViewRef.current) {
+                const cardWidth = 74; 
+                const halfScreen = screenWidth / 2;
+                const halfCard = cardWidth / 2;
+                const targetTopX = ((prevIndex - 1) * cardWidth) - halfScreen + halfCard;
+                cardsScrollViewRef.current.scrollTo({
+                    x: Math.max(0, targetTopX),
+                    animated: true
+                });
+            }
         }
     };
 
@@ -340,9 +381,19 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                             scrollEventThrottle={16}
                                         >
                                             {paragraphs.map((p, i) => (
-                                                <View key={i} style={{ width: slideWidth }}>
-                                                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
-                                                        <Text style={styles.readingText}>{p}</Text>
+                                                <View key={i} style={{ width: slideWidth, flex: 1 }}>
+                                                    <ScrollView 
+                                                        showsVerticalScrollIndicator={true} 
+                                                        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 10 }}
+                                                        indicatorStyle="white"
+                                                    >
+                                                        <Text 
+                                                            style={styles.readingText}
+                                                            adjustsFontSizeToFit={true}
+                                                            minimumFontScale={0.7}
+                                                        >
+                                                            {p}
+                                                        </Text>
                                                     </ScrollView>
                                                 </View>
                                             ))}
@@ -368,11 +419,21 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                     )}
                                 </>
                             ) : (
-                                <ScrollView showsVerticalScrollIndicator={false}>
-                                    <Text style={styles.readingText}>
-                                        {Array.isArray(readingData?.reading) ? readingData.reading.join('\n\n') : readingData?.reading}
-                                    </Text>
-                                </ScrollView>
+                                <View style={{ flex: 1 }}>
+                                    <ScrollView 
+                                        showsVerticalScrollIndicator={true} 
+                                        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 10 }}
+                                        indicatorStyle="white"
+                                    >
+                                        <Text 
+                                            style={styles.readingText}
+                                            adjustsFontSizeToFit={true}
+                                            minimumFontScale={0.7}
+                                        >
+                                            {Array.isArray(readingData?.reading) ? readingData.reading.join('\n\n') : readingData?.reading}
+                                        </Text>
+                                    </ScrollView>
+                                </View>
                             )}
                         </View>
 
@@ -467,59 +528,59 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingTop: 20,
-        height: 80,
+        paddingTop: 0,
+        height: 44,
     },
     backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     headerTitle: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 15,
         fontFamily: 'Outfit_700Bold',
     },
     mainContent: {
         flex: 1,
-        paddingHorizontal: 24,
-        paddingBottom: 80,
+        paddingHorizontal: 18,
+        paddingBottom: 65,
     },
     sectionTitle: {
         color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 12,
+        fontSize: 9,
         fontFamily: 'Inter_700Bold',
-        letterSpacing: 1.5,
+        letterSpacing: 1,
         textTransform: 'uppercase',
-        marginBottom: 8,
+        marginBottom: 4,
         marginTop: 0,
     },
     cardsScroll: {
-        paddingVertical: 10, // Added padding to allow glow to breathe
+        paddingVertical: 6, 
         paddingHorizontal: 4,
-        overflow: 'visible', // Allow content to pop out
+        overflow: 'visible', 
     },
     cardItem: {
-        width: 76,
+        width: 60,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderRadius: 12,
-        padding: 8,
-        marginRight: 12,
+        borderRadius: 10,
+        padding: 5,
+        marginRight: 10,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(212, 175, 55, 0.2)',
     },
     cardArt: {
-        width: 50,
-        height: 70,
+        width: 32,
+        height: 48,
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
-        borderRadius: 6,
+        borderRadius: 4,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 6,
+        marginBottom: 4,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.05)',
         overflow: 'hidden',
@@ -530,7 +591,7 @@ const styles = StyleSheet.create({
     },
     cardName: {
         color: '#fff',
-        fontSize: 9,
+        fontSize: 8,
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -554,40 +615,41 @@ const styles = StyleSheet.create({
     readingContainer: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 20,
-        padding: 16,
+        padding: 12,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        marginTop: 4,
+        marginTop: 2,
     },
     readingHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginBottom: 12,
+        gap: 10,
+        marginBottom: 8,
     },
     readingHeaderText: {
         color: '#d4af37',
-        fontSize: 14,
+        fontSize: 12,
         fontFamily: 'Outfit_600SemiBold',
-        flexShrink: 1, // Prevents text overflow if extremely long
+        flexShrink: 1, 
     },
     divider: {
         height: 1,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     readingText: {
         color: 'rgba(255, 255, 255, 0.9)',
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Inter_400Regular',
-        lineHeight: 26,
+        lineHeight: 22,
         textAlign: 'left',
+        flex: 1, 
     },
     paginationRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 24,
+        marginTop: 12,
         paddingHorizontal: 10,
     },
     navArrow: {
@@ -618,9 +680,9 @@ const styles = StyleSheet.create({
         width: 24,
     },
     saveButton: {
-        marginTop: 16,
-        height: 50,
-        borderRadius: 16,
+        marginTop: 8,
+        height: 40,
+        borderRadius: 12,
         overflow: 'hidden',
     },
     saveGradient: {
@@ -630,7 +692,7 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: '#1c1022',
-        fontSize: 18,
+        fontSize: 15,
         fontFamily: 'Outfit_700Bold',
     },
     errorContainer: {

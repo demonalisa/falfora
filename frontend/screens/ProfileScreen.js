@@ -95,7 +95,7 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
 
     return (
         <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <View style={styles.profileMainContent}>
                 {/* Header/Banner Area */}
                 <View style={styles.banner}>
                     <LinearGradient
@@ -321,7 +321,7 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                         <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.3)" />
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
 
             {/* Bottom Nav */}
             <View style={styles.bottomNav}>
@@ -348,14 +348,19 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#1c1022',
+        width: '100%',
+        height: '100%',
     },
-    scrollContent: {
-        paddingBottom: 100,
+    profileMainContent: {
+        flex: 1,
+        justifyContent: 'space-evenly', 
+        paddingBottom: 70, 
     },
     banner: {
         alignItems: 'center',
-        paddingTop: 40,
-        paddingBottom: 30,
+        paddingTop: 10,
+        paddingBottom: 20,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     },
@@ -407,7 +412,7 @@ const styles = StyleSheet.create({
     },
     section: {
         paddingHorizontal: 24,
-        marginTop: 32,
+        marginTop: 10,
     },
     sectionTitle: {
         color: 'rgba(255, 255, 255, 0.6)',

@@ -10,7 +10,9 @@ authentication yaklaşımları authorization
 jwt öğren
 cors
 https http rest
-
+conventional commits yaklaşımı
+web halinde pwa desteklemek için manifest.json dosyası oluştur
+misafir falı ayarı yapılacak
 Gelecekte Sunucuya Geçiş:
 İleride bir backend kurduğunda, sadece 
 services/database.js

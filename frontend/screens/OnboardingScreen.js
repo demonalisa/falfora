@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, Platform, Alert, Modal, Animated } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Modal, Animated } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -24,72 +24,8 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedZodiac, setSelectedZodiac] = useState('Aslan');
     const [relationshipStatus, setRelationshipStatus] = useState('İlişkisi Var');
-    const [showZodiacScrollHint, setShowZodiacScrollHint] = useState(true);
     const [dateError, setDateError] = useState(false);
-    const [zodiacWarning, setZodiacWarning] = useState(null);
     const webDateInputRef = useRef(null);
-
-    const calculateZodiac = (date) => {
-        if (!date) return null;
-        const d = new Date(date);
-        const month = d.getMonth() + 1;
-        const day = d.getDate();
-
-        if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Koç';
-        if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Boğa';
-        if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'İkizler';
-        if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Yengeç';
-        if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Aslan';
-        if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Başak';
-        if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Terazi';
-        if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Akrep';
-        if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Yay';
-        if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Oğlak';
-        if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Kova';
-        if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Balık';
-        return null;
-    };
-
-    useEffect(() => {
-        if (birthDate) {
-            const calculated = calculateZodiac(birthDate);
-            if (calculated && calculated !== selectedZodiac) {
-                setZodiacWarning(calculated);
-            } else {
-                setZodiacWarning(null);
-            }
-        }
-    }, [birthDate, selectedZodiac]);
-
-    // Animation for the scroll hint arrow
-    const bobAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        if (showZodiacScrollHint) {
-            const animation = Animated.loop(
-                Animated.sequence([
-                    Animated.timing(bobAnim, {
-                        toValue: 8,
-                        duration: 800,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(bobAnim, {
-                        toValue: 0,
-                        duration: 800,
-                        useNativeDriver: true,
-                    }),
-                ])
-            );
-            animation.start();
-            return () => animation.stop();
-        }
-    }, [showZodiacScrollHint]);
-
-    const onZodiacScroll = (event) => {
-        if (event.nativeEvent.contentOffset.x > 10 && showZodiacScrollHint) {
-            setShowZodiacScrollHint(false);
-        }
-    };
 
     const onDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
@@ -129,14 +65,12 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 
     return (
         <View style={styles.onboardingContainer}>
-            {/* Top Bar for Onboarding */}
+            {/* Header */}
             <View style={styles.onboardingHeader}>
-                <View style={{ width: 44 }} />
                 <Text style={styles.onboardingHeaderTitle}>Kullanıcı Bilgileri</Text>
-                <View style={{ width: 44 }} />
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.onboardingScroll}>
+            <View style={styles.mainContentFit}>
                 {/* Headline */}
                 <View style={styles.onboardingHeadline}>
                     <Text style={styles.onboardingTitle}>Göksel Uyum</Text>
@@ -145,28 +79,13 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 
                 {/* Form */}
                 <View style={styles.formContainer}>
-                    {/* Birth Date */}
+                    {/* Birth Date Section */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Doğum Tarihi *</Text>
+                        <Text style={styles.inputLabel}>Doğum Tarihi * {dateError && <Text style={{color: '#ff4d4d', textTransform: 'none'}}> (Gerekli)</Text>}</Text>
                         <TouchableOpacity
                             style={styles.textInputWrapper}
-                            onPress={() => {
-                                if (Platform.OS !== 'web') {
-                                    setShowDatePicker(true);
-                                } else if (webDateInputRef.current) {
-                                    // Modern way to show native picker on web
-                                    try {
-                                        if (typeof webDateInputRef.current.showPicker === 'function') {
-                                            webDateInputRef.current.showPicker();
-                                        } else {
-                                            webDateInputRef.current.click();
-                                        }
-                                    } catch (e) {
-                                        webDateInputRef.current.click();
-                                    }
-                                }
-                            }}
-                            activeOpacity={Platform.OS === 'web' ? 0.6 : 0.7}
+                            onPress={() => Platform.OS !== 'web' && setShowDatePicker(true)}
+                            activeOpacity={Platform.OS === 'web' ? 1 : 0.7}
                         >
                             <View style={[styles.textInput, dateError && styles.textInputError]}>
                                 <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
@@ -175,38 +94,29 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                             </View>
                             <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
                             
-                            {/* Web-specific native date picker (hidden) */}
                             {Platform.OS === 'web' && (
                                 <input
                                     ref={webDateInputRef}
                                     type="date"
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0, left: 0, right: 0, bottom: 0,
-                                        opacity: 0,
-                                        width: 0,
-                                        height: 0,
-                                        pointerEvents: 'none'
-                                    }}
+                                    style={styles.webInputOverlay}
                                     max={new Date().toISOString().split('T')[0]}
                                     onChange={(e) => {
-                                        const date = new Date(e.target.value);
-                                        if (!isNaN(date.getTime())) {
-                                            setBirthDate(date);
-                                            setDateError(false);
+                                        const dateValue = e.target.value;
+                                        if (dateValue) {
+                                            const date = new Date(dateValue);
+                                            if (!isNaN(date.getTime())) {
+                                                setBirthDate(date);
+                                                setDateError(false);
+                                            }
                                         }
                                     }}
                                 />
                             )}
                         </TouchableOpacity>
 
-                        {/* iOS Date Picker Modal */}
+                        {/* iOS Modal */}
                         {Platform.OS === 'ios' && (
-                            <Modal
-                                transparent={true}
-                                animationType="slide"
-                                visible={showDatePicker}
-                            >
+                            <Modal transparent={true} animationType="slide" visible={showDatePicker}>
                                 <View style={styles.modalOverlay}>
                                     <View style={styles.modalContent}>
                                         <View style={styles.modalHeader}>
@@ -229,8 +139,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 </View>
                             </Modal>
                         )}
-
-                        {/* Android Date Picker */}
+                        {/* Android Picker */}
                         {Platform.OS === 'android' && showDatePicker && (
                             <DateTimePicker
                                 value={birthDate || new Date()}
@@ -240,79 +149,38 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 maximumDate={new Date()}
                             />
                         )}
-
-                        {dateError && (
-                            <Text style={styles.errorText}>Lütfen yıldızlarla uyumlanmak için doğum tarihinizi seçin.</Text>
-                        )}
                     </View>
 
+                    {/* Zodiac Selection */}
                     <View style={styles.inputGroup}>
-                        <View style={styles.rowBetween}>
-                            <Text style={styles.inputLabel}>Burç</Text>
-                        </View>
-
-                        {zodiacWarning && (
-                            <View style={styles.warningBox}>
-                                <View style={styles.warningHeader}>
-                                    <MaterialCommunityIcons name="star-shooting" size={16} color="#d4af37" />
-                                    <Text style={styles.warningTitle}>Kozmik Uyarı</Text>
-                                </View>
-                                <Text style={styles.warningText}>
-                                    Seçtiğiniz tarihe göre burcunuz <Text style={styles.warningSpan}>{zodiacWarning}</Text> olarak görünüyor.
-                                    Yine de kendinizi seçtiğiniz burca daha yakın hissediyorsanız devam edebilirsiniz.
-                                </Text>
-                            </View>
-                        )}
-
+                        <Text style={styles.inputLabel}>Burç</Text>
                         <View style={styles.zodiacScrollWrapper}>
                             <ScrollView
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
                                 contentContainerStyle={styles.zodiacScrollContent}
-                                onScroll={onZodiacScroll}
-                                scrollEventThrottle={16}
                             >
                                 {ZODIAC_SIGNS.map((item) => (
                                     <TouchableOpacity
                                         key={item.name}
                                         onPress={() => setSelectedZodiac(item.name)}
-                                        style={[
-                                            styles.zodiacCard,
-                                            selectedZodiac === item.name && styles.zodiacCardSelected,
-                                        ]}
+                                        style={[styles.zodiacCard, selectedZodiac === item.name && styles.zodiacCardSelected]}
                                     >
                                         <MaterialCommunityIcons
                                             name={item.icon}
                                             size={32}
                                             color={selectedZodiac === item.name ? '#d4af37' : 'rgba(255, 255, 255, 0.5)'}
                                         />
-                                        <Text
-                                            style={[
-                                                styles.zodiacName,
-                                                selectedZodiac === item.name ? styles.zodiacNameActive : styles.zodiacNameInactive,
-                                            ]}
-                                        >
+                                        <Text style={[styles.zodiacName, selectedZodiac === item.name ? styles.zodiacNameActive : styles.zodiacNameInactive]}>
                                             {item.name}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
-
-                            {showZodiacScrollHint && (
-                                <Animated.View
-                                    style={[
-                                        styles.scrollHint,
-                                        { transform: [{ translateX: bobAnim }] }
-                                    ]}
-                                    pointerEvents="none"
-                                >
-                                    <MaterialIcons name="chevron-right" size={32} color="white" />
-                                </Animated.View>
-                            )}
                         </View>
                     </View>
 
-                    {/* Relationship Status */}
+                    {/* Relationship Status Selection */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>İlişki Durumu</Text>
                         <View style={styles.pillGroup}>
@@ -320,17 +188,9 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 <TouchableOpacity
                                     key={status}
                                     onPress={() => setRelationshipStatus(status)}
-                                    style={[
-                                        styles.pillButton,
-                                        relationshipStatus === status && styles.pillButtonActive,
-                                    ]}
+                                    style={[styles.pillButton, relationshipStatus === status && styles.pillButtonActive]}
                                 >
-                                    <Text
-                                        style={[
-                                            styles.pillText,
-                                            relationshipStatus === status && styles.pillTextActive,
-                                        ]}
-                                    >
+                                    <Text style={[styles.pillText, relationshipStatus === status && styles.pillTextActive]}>
                                         {status}
                                     </Text>
                                 </TouchableOpacity>
@@ -338,15 +198,12 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                         </View>
                     </View>
                 </View>
-            </ScrollView>
+            </View>
 
-            {/* Sticky Bottom Button */}
+            {/* Footer Button */}
             <View style={styles.onboardingFooter}>
-                <TouchableOpacity
-                    style={styles.continueButton}
-                    onPress={handleContinue}
-                >
-                    <Text style={styles.continueButtonText}>Devam Et</Text>
+                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                    <Text style={styles.continueButtonText}>Kozmos'a Devam Et</Text>
                     <MaterialCommunityIcons name="auto-fix" size={22} color="#1c1022" />
                 </TouchableOpacity>
             </View>
@@ -357,54 +214,29 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 const styles = StyleSheet.create({
     onboardingContainer: {
         flex: 1,
+        backgroundColor: '#1c1022',
+        width: '100%',
+        height: '100%',
     },
     onboardingHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-    },
-    backIconButton: {
-        width: 44,
-        height: 44,
+        height: 60,
         alignItems: 'center',
         justifyContent: 'center',
+        paddingTop: 10,
     },
     onboardingHeaderTitle: {
         color: 'white',
         fontSize: 18,
         fontFamily: 'Outfit_600SemiBold',
+    },
+    mainContentFit: {
         flex: 1,
-        textAlign: 'center',
-    },
-    onboardingScroll: {
-        paddingHorizontal: 20,
-        paddingBottom: 100,
-    },
-    progressContainer: {
-        marginBottom: 24,
-    },
-    progressLabel: {
-        color: 'rgba(255, 255, 255, 0.7)',
-        fontSize: 12,
-        fontFamily: 'Inter_700Bold',
-        letterSpacing: 2,
-        marginBottom: 8,
-        textTransform: 'uppercase',
-    },
-    progressBarBg: {
-        height: 6,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    progressBarFill: {
-        height: '100%',
-        backgroundColor: '#d4af37',
-        borderRadius: 3,
+        paddingHorizontal: 24,
+        justifyContent: 'space-evenly', // İçeriği ekrana dengeli dağıtır
+        paddingBottom: 20,
     },
     onboardingHeadline: {
         alignItems: 'center',
-        marginBottom: 32,
     },
     onboardingTitle: {
         color: 'white',
@@ -412,31 +244,30 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
         marginBottom: 8,
-        letterSpacing: -0.5,
     },
     onboardingSubtitle: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 16,
+        fontSize: 15,
         fontFamily: 'Inter_400Regular',
         textAlign: 'center',
-        lineHeight: 22,
+        lineHeight: 20,
     },
     formContainer: {
-        gap: 32,
+        gap: 24,
     },
     inputGroup: {
-        gap: 12,
+        gap: 10,
     },
     inputLabel: {
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 12,
         fontFamily: 'Inter_700Bold',
-        letterSpacing: 1.5,
+        letterSpacing: 1.2,
         textTransform: 'uppercase',
     },
     textInputWrapper: {
         position: 'relative',
-        height: 56,
+        height: 52,
     },
     textInput: {
         flex: 1,
@@ -447,68 +278,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         justifyContent: 'center',
     },
+    textInputError: {
+        borderColor: '#ff4d4d',
+    },
     inputIcon: {
         position: 'absolute',
         right: 16,
-        top: 18,
-    },
-    rowBetween: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-    },
-    autoDetect: {
-        color: '#d4af37',
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    zodiacScrollWrapper: {
-        position: 'relative',
-        height: 100,
-    },
-    zodiacScrollContent: {
-        flexDirection: 'row',
-        gap: 12,
-        paddingRight: 40, // Increased padding to avoid arrow overlap
-    },
-    scrollHint: {
-        position: 'absolute',
-        right: 0,
-        top: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        paddingLeft: 10,
-        backgroundColor: 'transparent',
-    },
-    zodiacCard: {
-        width: 100,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 12,
-        padding: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        opacity: 0.6,
-        height: 100,
-    },
-    zodiacCardSelected: {
-        backgroundColor: 'rgba(212, 175, 55, 0.15)',
-        borderColor: '#d4af37',
-        borderWidth: 2,
-        opacity: 1,
-    },
-    zodiacName: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    zodiacNameInactive: {
-        color: 'rgba(255, 255, 255, 0.7)',
-    },
-    zodiacNameActive: {
-        color: 'white',
-        fontWeight: 'bold',
+        top: 15,
     },
     dateText: {
         color: 'white',
@@ -517,58 +293,111 @@ const styles = StyleSheet.create({
     placeholderText: {
         color: 'rgba(255, 255, 255, 0.2)',
     },
+    webInputOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0,
+        cursor: 'pointer',
+        zIndex: 10,
+    },
+    zodiacScrollWrapper: {
+        height: 90,
+    },
+    zodiacScrollContent: {
+        gap: 12,
+        paddingRight: 20,
+    },
+    zodiacCard: {
+        width: 90,
+        height: 90,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+    },
+    zodiacCardSelected: {
+        backgroundColor: 'rgba(212, 175, 55, 0.15)',
+        borderColor: '#d4af37',
+        borderWidth: 2,
+    },
+    zodiacName: {
+        fontSize: 11,
+    },
+    zodiacNameInactive: {
+        color: 'rgba(255, 255, 255, 0.7)',
+    },
+    zodiacNameActive: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
     pillGroup: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        gap: 8,
     },
     pillButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
         borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     pillButtonActive: {
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        backgroundColor: 'rgba(212, 175, 55, 0.15)',
         borderColor: '#d4af37',
     },
     pillText: {
         color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 14,
-        fontFamily: 'Inter_400Regular',
+        fontSize: 13,
     },
     pillTextActive: {
         color: '#d4af37',
-        fontFamily: 'Inter_700Bold',
+        fontWeight: 'bold',
     },
     onboardingFooter: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 20,
-        paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-        backgroundColor: 'rgba(28, 16, 34, 0.8)',
+        padding: 24,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    },
+    continueButton: {
+        backgroundColor: '#d4af37',
+        height: 56,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+    },
+    continueButtonText: {
+        color: '#1c1022',
+        fontSize: 18,
+        fontFamily: 'Outfit_700Bold',
     },
     modalOverlay: {
         flex: 1,
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
     modalContent: {
         backgroundColor: '#1c1022',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
         paddingBottom: 20,
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 16,
+        padding: 18,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+        borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     },
     modalDoneText: {
         color: '#d4af37',
@@ -578,66 +407,5 @@ const styles = StyleSheet.create({
     modalCancelText: {
         color: 'white',
         fontSize: 16,
-    },
-    continueButton: {
-        backgroundColor: '#d4af37',
-        height: 56,
-        borderRadius: 14,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        shadowColor: '#d4af37',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    continueButtonText: {
-        color: '#1c1022',
-        fontSize: 18,
-        fontFamily: 'Outfit_700Bold',
-    },
-    errorText: {
-        color: '#ff4d4d',
-        fontSize: 12,
-        fontFamily: 'Inter_500Medium',
-        marginTop: 8,
-        marginLeft: 4,
-    },
-    textInputError: {
-        borderColor: '#ff4d4d',
-        backgroundColor: 'rgba(255, 77, 77, 0.05)',
-    },
-    warningBox: {
-        backgroundColor: 'rgba(212, 175, 55, 0.08)',
-        borderRadius: 12,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.3)',
-        marginBottom: 16,
-        marginTop: 4,
-    },
-    warningHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        marginBottom: 4,
-    },
-    warningTitle: {
-        color: '#d4af37',
-        fontSize: 12,
-        fontFamily: 'Inter_700Bold',
-        letterSpacing: 0.5,
-    },
-    warningText: {
-        color: 'rgba(255, 255, 255, 0.7)',
-        fontSize: 12,
-        lineHeight: 18,
-        fontFamily: 'Inter_400Regular',
-    },
-    warningSpan: {
-        color: '#d4af37',
-        fontFamily: 'Inter_700Bold',
     },
 });

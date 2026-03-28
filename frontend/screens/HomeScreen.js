@@ -8,7 +8,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
 
     return (
         <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <View style={styles.mainContent}>
                 {/* Title Section */}
                 <View style={styles.titleSection}>
                     <Text style={styles.mainTitle}>Kaderini{"\n"}<Text style={styles.accentText}>Keşfet</Text></Text>
@@ -71,7 +71,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         )}
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
 
             {/* Fixed Action Button */}
             <View style={styles.fixedActionSection}>
@@ -124,10 +124,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    scrollContent: {
+    mainContent: {
+        flex: 1,
         paddingHorizontal: 24,
-        paddingTop: 0,
-        paddingBottom: 160, // Increased to accommodate fixed button
+        paddingTop: Platform.OS === 'web' ? 20 : 0,
+        paddingBottom: 150,
+        justifyContent: 'space-around', // Spread content to fit screen height
     },
     titleSection: {
         marginTop: 10,
