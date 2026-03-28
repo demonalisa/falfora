@@ -35,12 +35,12 @@ export default function WelcomeScreen({ user, onStart }) {
                     <View style={styles.glow} />
                 </View>
 
-                <Text style={styles.title}>The Stars Have Spoken</Text>
+                <Text style={styles.title}>Yıldızlar Konuştu</Text>
 
                 <Text style={styles.message}>
-                    Welcome, <Text style={styles.userName}>{user?.name}</Text>.{"\n\n"}
-                    Your celestial map is now complete. The universe has prepared a unique path for you, filled with cosmic insights and spiritual growth.{"\n\n"}
-                    You are now ready to discover what the stars have written in the tapestry of time.
+                    Hoş geldin, <Text style={styles.userName}>{user?.name}</Text>.{"\n\n"}
+                    Göksel haritanız artık tamamlandı. Evren sizin için kozmik içgörüler ve ruhsal gelişimle dolu benzersiz bir yol hazırladı.{"\n\n"}
+                    Artık yıldızların zamanın dokusuna ne yazdığını keşfetmeye hazırsınız.
                 </Text>
 
                 <TouchableOpacity style={styles.startButton} onPress={onStart}>
@@ -50,7 +50,7 @@ export default function WelcomeScreen({ user, onStart }) {
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                     >
-                        <Text style={styles.buttonText}>Let's Start</Text>
+                        <Text style={styles.buttonText}>Başlayalım</Text>
                         <MaterialCommunityIcons name="shimmer" size={20} color="#1c1022" />
                     </LinearGradient>
                 </TouchableOpacity>

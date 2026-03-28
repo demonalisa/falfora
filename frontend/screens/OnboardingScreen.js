@@ -4,26 +4,26 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const ZODIAC_SIGNS = [
-    { name: 'Aries', icon: 'zodiac-aries' },
-    { name: 'Taurus', icon: 'zodiac-taurus' },
-    { name: 'Gemini', icon: 'zodiac-gemini' },
-    { name: 'Cancer', icon: 'zodiac-cancer' },
-    { name: 'Leo', icon: 'zodiac-leo' },
-    { name: 'Virgo', icon: 'zodiac-virgo' },
-    { name: 'Libra', icon: 'zodiac-libra' },
-    { name: 'Scorpio', icon: 'zodiac-scorpio' },
-    { name: 'Sagittarius', icon: 'zodiac-sagittarius' },
-    { name: 'Capricorn', icon: 'zodiac-capricorn' },
-    { name: 'Aquarius', icon: 'zodiac-aquarius' },
-    { name: 'Pisces', icon: 'zodiac-pisces' },
+    { name: 'Koç', icon: 'zodiac-aries' },
+    { name: 'Boğa', icon: 'zodiac-taurus' },
+    { name: 'İkizler', icon: 'zodiac-gemini' },
+    { name: 'Yengeç', icon: 'zodiac-cancer' },
+    { name: 'Aslan', icon: 'zodiac-leo' },
+    { name: 'Başak', icon: 'zodiac-virgo' },
+    { name: 'Terazi', icon: 'zodiac-libra' },
+    { name: 'Akrep', icon: 'zodiac-scorpio' },
+    { name: 'Yay', icon: 'zodiac-sagittarius' },
+    { name: 'Oğlak', icon: 'zodiac-capricorn' },
+    { name: 'Kova', icon: 'zodiac-aquarius' },
+    { name: 'Balık', icon: 'zodiac-pisces' },
 ];
 
 export default function OnboardingScreen({ onComplete, onBack }) {
     const [birthDate, setBirthDate] = useState(null);
     const [tempDate, setTempDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [selectedZodiac, setSelectedZodiac] = useState('Leo');
-    const [relationshipStatus, setRelationshipStatus] = useState('In a Relationship');
+    const [selectedZodiac, setSelectedZodiac] = useState('Aslan');
+    const [relationshipStatus, setRelationshipStatus] = useState('İlişkisi Var');
     const [showZodiacScrollHint, setShowZodiacScrollHint] = useState(true);
 
     // Animation for the scroll hint arrow
@@ -71,14 +71,14 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     };
 
     const formatDate = (date) => {
-        if (!date) return 'MM / DD / YYYY';
+        if (!date) return 'Gün / Ay / Yıl';
         const d = new Date(date);
-        return `${d.getMonth() + 1} / ${d.getDate()} / ${d.getFullYear()}`;
+        return `${d.getDate()} / ${d.getMonth() + 1} / ${d.getFullYear()}`;
     };
 
     const handleContinue = () => {
         if (!birthDate) {
-            Alert.alert("Required", "Please select your birth date to align with the stars.");
+            Alert.alert("Hata", "Lütfen yıldızlarla uyumlanmak için doğum tarihinizi seçin.");
             return;
         }
         onComplete({
@@ -93,25 +93,30 @@ export default function OnboardingScreen({ onComplete, onBack }) {
             {/* Top Bar for Onboarding */}
             <View style={styles.onboardingHeader}>
                 <View style={{ width: 44 }} />
-                <Text style={styles.onboardingHeaderTitle}>User Information</Text>
+                <Text style={styles.onboardingHeaderTitle}>Kullanıcı Bilgileri</Text>
                 <View style={{ width: 44 }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.onboardingScroll}>
                 {/* Headline */}
                 <View style={styles.onboardingHeadline}>
-                    <Text style={styles.onboardingTitle}>Celestial Alignment</Text>
-                    <Text style={styles.onboardingSubtitle}>Let the stars know who you are to unveil your cosmic path.</Text>
+                    <Text style={styles.onboardingTitle}>Göksel Uyum</Text>
+                    <Text style={styles.onboardingSubtitle}>Yıldızların yolunuzu aydınlatması için kendinizi tanıtın.</Text>
                 </View>
 
                 {/* Form */}
                 <View style={styles.formContainer}>
                     {/* Birth Date */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Birth Date *</Text>
+                        <Text style={styles.inputLabel}>Doğum Tarihi *</Text>
                         <TouchableOpacity
                             style={styles.textInputWrapper}
-                            onPress={() => setShowDatePicker(true)}
+                            onPress={() => {
+                                if (Platform.OS !== 'web') {
+                                    setShowDatePicker(true);
+                                }
+                            }}
+                            activeOpacity={Platform.OS === 'web' ? 1 : 0.7}
                         >
                             <View style={styles.textInput}>
                                 <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
@@ -119,6 +124,26 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 </Text>
                             </View>
                             <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
+                            
+                            {/* Native date picker for web (hidden overlay) */}
+                            {Platform.OS === 'web' && (
+                                <input
+                                    type="date"
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0, left: 0, right: 0, bottom: 0,
+                                        opacity: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        cursor: 'pointer'
+                                    }}
+                                    max={new Date().toISOString().split('T')[0]}
+                                    onChange={(e) => {
+                                        const date = new Date(e.target.value);
+                                        if (!isNaN(date.getTime())) setBirthDate(date);
+                                    }}
+                                />
+                            )}
                         </TouchableOpacity>
 
                         {/* iOS Date Picker Modal */}
@@ -132,10 +157,10 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                     <View style={styles.modalContent}>
                                         <View style={styles.modalHeader}>
                                             <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                                <Text style={styles.modalCancelText}>Cancel</Text>
+                                                <Text style={styles.modalCancelText}>İptal</Text>
                                             </TouchableOpacity>
                                             <TouchableOpacity onPress={handleConfirmDate}>
-                                                <Text style={styles.modalDoneText}>Confirm</Text>
+                                                <Text style={styles.modalDoneText}>Onayla</Text>
                                             </TouchableOpacity>
                                         </View>
                                         <DateTimePicker
@@ -166,7 +191,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                     {/* Zodiac grid (Now scrollable) */}
                     <View style={styles.inputGroup}>
                         <View style={styles.rowBetween}>
-                            <Text style={styles.inputLabel}>Zodiac Sign</Text>
+                            <Text style={styles.inputLabel}>Burç</Text>
                         </View>
                         <View style={styles.zodiacScrollWrapper}>
                             <ScrollView
@@ -218,9 +243,9 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 
                     {/* Relationship Status */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Relationship Status</Text>
+                        <Text style={styles.inputLabel}>İlişki Durumu</Text>
                         <View style={styles.pillGroup}>
-                            {['Single', 'In a Relationship', 'Married', 'Complicated'].map((status) => (
+                            {['Bekar', 'İlişkisi Var', 'Evli', 'Karışık'].map((status) => (
                                 <TouchableOpacity
                                     key={status}
                                     onPress={() => setRelationshipStatus(status)}
@@ -250,7 +275,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                     style={styles.continueButton}
                     onPress={handleContinue}
                 >
-                    <Text style={styles.continueButtonText}>Continue</Text>
+                    <Text style={styles.continueButtonText}>Devam Et</Text>
                     <MaterialCommunityIcons name="auto-fix" size={22} color="#1c1022" />
                 </TouchableOpacity>
             </View>

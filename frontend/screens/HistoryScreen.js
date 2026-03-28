@@ -36,12 +36,12 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
 
     const handleClearHistory = () => {
         Alert.alert(
-            "Clear History",
-            "Are you sure you want to delete all cosmic records? This action cannot be undone.",
+            "Geçmişi Temizle",
+            "Tüm kozmik kayıtları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
             [
-                { text: "Cancel", style: "cancel" },
+                { text: "İptal", style: "cancel" },
                 {
-                    text: "Delete All",
+                    text: "Hepsini Sil",
                     style: "destructive",
                     onPress: async () => {
                         await DatabaseService.clearReadings(user.id);
@@ -56,7 +56,7 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={{ width: 40 }} />
-                <Text style={styles.headerTitle}>Cosmic Records</Text>
+                <Text style={styles.headerTitle}>Kozmik Kayıtlar</Text>
                 {historyItems.length > 0 ? (
                     <TouchableOpacity onPress={handleClearHistory} style={styles.clearButton}>
                         <MaterialCommunityIcons name="trash-can-outline" size={24} color="#ff4d4d" />
@@ -76,8 +76,8 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
                         <View style={styles.emptyIconContainer}>
                             <MaterialCommunityIcons name="book-outline" size={80} color="rgba(212, 175, 55, 0.2)" />
                         </View>
-                        <Text style={styles.emptyTitle}>No Cosmic Records Yet</Text>
-                        <Text style={styles.emptySubtitle}>Your future readings will be stored here in the celestial archives.</Text>
+                        <Text style={styles.emptyTitle}>Henüz Kozmik Kayıt Yok</Text>
+                        <Text style={styles.emptySubtitle}>Gelecek fallarınız göksel arşivlerde burada saklanacak.</Text>
 
                         <TouchableOpacity
                             style={styles.startReadingButton}
@@ -89,7 +89,7 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
                             >
-                                <Text style={styles.buttonText}>Start a Reading</Text>
+                                <Text style={styles.buttonText}>Fal Bak</Text>
                                 <MaterialCommunityIcons name="auto-fix" size={20} color="#1c1022" />
                             </LinearGradient>
                         </TouchableOpacity>
@@ -137,17 +137,17 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
                 <TouchableOpacity style={styles.navItemActive}>
                     <View style={styles.activeIndicator} />
                     <MaterialCommunityIcons name="history" size={26} color="#d4af37" />
-                    <Text style={styles.navTextActive}>History</Text>
+                    <Text style={styles.navTextActive}>Geçmiş</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('home')}>
                     <MaterialCommunityIcons name="home-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>Home</Text>
+                    <Text style={styles.navText}>Ana Sayfa</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('profile')}>
                     <MaterialCommunityIcons name="account-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>Profile</Text>
+                    <Text style={styles.navText}>Profil</Text>
                 </TouchableOpacity>
             </View>
         </View>

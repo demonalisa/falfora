@@ -37,10 +37,10 @@ export default function LoginScreen({ onLogin }) {
 
             <View style={styles.textContainer}>
                 <Text style={styles.mainTitle}>
-                    Unveil Your <Text style={styles.accentText}>Destiny</Text>
+                    Kaderinizi <Text style={styles.accentText}>Keşfedin</Text>
                 </Text>
                 <Text style={styles.subtitle}>
-                    Connect your spirit to the cosmic energy and reveal what the stars have written for you.
+                    Ruhunuzu kozmik enerjiye bağlayın ve yıldızların sizin için ne yazdığını ortaya çıkarın.
                 </Text>
             </View>
 
@@ -61,20 +61,20 @@ export default function LoginScreen({ onLogin }) {
                             <ActivityIndicator size="small" color="#1c1022" />
                         ) : (
                             <>
-                                <MaterialCommunityIcons name="login" size={22} color="#1c1022" />
-                                <Text style={styles.loginButtonText}>Enter the Cosmos</Text>
+                               <MaterialCommunityIcons name="login" size={22} color="#1c1022" />
+                                <Text style={styles.loginButtonText}>Evrene Giriş Yap</Text>
                             </>
                         )}
                     </LinearGradient>
                 </TouchableOpacity>
 
-                <Text style={styles.loginHint}>Sign in with Google, Apple, Email & more</Text>
+                <Text style={styles.loginHint}>Google, Apple, E-posta ve daha fazlasıyla giriş yapın</Text>
             </View>
 
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                    By entering the cosmos, you agree to our{'\n'}
-                    <Text style={styles.linkText}>Terms of Transcendence</Text> and <Text style={styles.linkText}>Spiritual Privacy Policy</Text>.
+                    Evrene girerek şunları kabul etmiş olursunuz:{'\n'}
+                    <Text style={styles.linkText}>Yüceliş Şartları</Text> ve <Text style={styles.linkText}>Ruhsal Gizlilik Politikası</Text>.
                 </Text>
             </View>
         </View>

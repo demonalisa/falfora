@@ -54,7 +54,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
 
     const getSlideTitle = (index) => {
         const total = paragraphs.length;
-        if (total === 0) return "Celestial Interpretation";
+        if (total === 0) return "Göksel Yorum";
         if (index === 0) return "Giriş";
         if (index === total - 2) return "Özet";
         if (index === total - 1) return "Kapanış";
@@ -79,8 +79,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
     };
 
     const fortuneNames = {
-        '3_cards': 'Daily Insight',
-        '10_cards': 'Galactic Spread'
+        '3_cards': 'Günlük Bakış',
+        '10_cards': 'Galaktik Açılım'
     };
 
     useEffect(() => {
@@ -104,7 +104,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 },
                 body: JSON.stringify({
                     cardCount,
-                    spreadName: fortuneNames[selectedType] || 'Tarot Reading',
+                    spreadName: fortuneNames[selectedType] || 'Tarot Falı',
                     userInfo: {
                         name: userInfo?.name || user?.name,
                         birthDate: userInfo?.birthDate,
@@ -126,7 +126,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             if (user?.id) {
                 await DatabaseService.saveReading(user.id, {
                     type: selectedType,
-                    typeName: fortuneNames[selectedType] || 'Tarot Reading',
+                    typeName: fortuneNames[selectedType] || 'Tarot Falı',
                     cards: data.cards,
                     reading: data.reading
                 });
@@ -145,8 +145,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 <LinearGradient colors={['#1c1022', '#2d1b36']} style={StyleSheet.absoluteFill} />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#d4af37" />
-                    <Text style={styles.loadingText}>The universe is preparing your cards...</Text>
-                    <Text style={styles.loadingSubtext}>Aligning with your celestial energy</Text>
+                    <Text style={styles.loadingText}>Evren kartlarınızı hazırlıyor...</Text>
+                    <Text style={styles.loadingSubtext}>Kozmik enerjinizle uyumlanıyor...</Text>
                 </View>
             </View>
         );
@@ -161,7 +161,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <Ionicons name="chevron-back" size={24} color="#d4af37" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>{fortuneNames[selectedType] || 'Tarot Reading'}</Text>
+                <Text style={styles.headerTitle}>{fortuneNames[selectedType] || 'Tarot Falı'}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -171,14 +171,14 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                         <MaterialCommunityIcons name="alert-circle-outline" size={64} color="#ff4d4d" />
                         <Text style={styles.errorText}>{error}</Text>
                         <TouchableOpacity style={styles.retryButton} onPress={fetchTarotReading}>
-                            <Text style={styles.retryButtonText}>Try Again</Text>
+                            <Text style={styles.retryButtonText}>Tekrar Dene</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
                     <>
                         {/* Cards Display */}
                         <View style={{ flexGrow: 0, marginBottom: 8 }}>
-                            <Text style={styles.sectionTitle}>Your Selected Cards</Text>
+                            <Text style={styles.sectionTitle}>Seçilen Kartlarınız</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.cardsScroll}>
                             {readingData?.cards.map((card, index) => {
                                 const imageSource = getCardImage(card);
@@ -274,7 +274,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                         <TouchableOpacity style={styles.saveButton} onPress={onBack}>
                             <LinearGradient colors={['#d4af37', '#b8860b']} style={styles.saveGradient}>
                                 <Text style={styles.saveButtonText}>
-                                    {existingReading ? 'Return to Archives' : 'Gratefully Received'}
+                                    {existingReading ? 'Arşivlere Dön' : 'Şükranla Kabul Edildi'}
                                 </Text>
                             </LinearGradient>
                         </TouchableOpacity>
@@ -314,18 +314,18 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('history')}>
                     <MaterialCommunityIcons name="history" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>History</Text>
+                    <Text style={styles.navText}>Geçmiş</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItemActive} onPress={() => onNavigate('home')}>
                     <View style={styles.activeIndicator} />
                     <MaterialCommunityIcons name="home-variant" size={26} color="#d4af37" />
-                    <Text style={styles.navTextActive}>Home</Text>
+                    <Text style={styles.navTextActive}>Ana Sayfa</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('profile')}>
                     <MaterialCommunityIcons name="account-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>Profile</Text>
+                    <Text style={styles.navText}>Profil</Text>
                 </TouchableOpacity>
             </View>
         </View>

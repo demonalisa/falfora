@@ -6,18 +6,18 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { DatabaseService } from '../services/database';
 
 const ZODIAC_SIGNS = [
-    { name: 'Aries', icon: 'zodiac-aries' },
-    { name: 'Taurus', icon: 'zodiac-taurus' },
-    { name: 'Gemini', icon: 'zodiac-gemini' },
-    { name: 'Cancer', icon: 'zodiac-cancer' },
-    { name: 'Leo', icon: 'zodiac-leo' },
-    { name: 'Virgo', icon: 'zodiac-virgo' },
-    { name: 'Libra', icon: 'zodiac-libra' },
-    { name: 'Scorpio', icon: 'zodiac-scorpio' },
-    { name: 'Sagittarius', icon: 'zodiac-sagittarius' },
-    { name: 'Capricorn', icon: 'zodiac-capricorn' },
-    { name: 'Aquarius', icon: 'zodiac-aquarius' },
-    { name: 'Pisces', icon: 'zodiac-pisces' },
+    { name: 'Koç', icon: 'zodiac-aries' },
+    { name: 'Boğa', icon: 'zodiac-taurus' },
+    { name: 'İkizler', icon: 'zodiac-gemini' },
+    { name: 'Yengeç', icon: 'zodiac-cancer' },
+    { name: 'Aslan', icon: 'zodiac-leo' },
+    { name: 'Başak', icon: 'zodiac-virgo' },
+    { name: 'Terazi', icon: 'zodiac-libra' },
+    { name: 'Akrep', icon: 'zodiac-scorpio' },
+    { name: 'Yay', icon: 'zodiac-sagittarius' },
+    { name: 'Oğlak', icon: 'zodiac-capricorn' },
+    { name: 'Kova', icon: 'zodiac-aquarius' },
+    { name: 'Balık', icon: 'zodiac-pisces' },
 ];
 
 export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, onNavigate }) {
@@ -30,8 +30,8 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
     const [birthDate, setBirthDate] = useState(fullUser.birthDate ? new Date(fullUser.birthDate) : null);
     const [tempDate, setTempDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [selectedZodiac, setSelectedZodiac] = useState(fullUser.zodiac || 'Leo');
-    const [relationshipStatus, setRelationshipStatus] = useState(fullUser.relationship || 'In a Relationship');
+    const [selectedZodiac, setSelectedZodiac] = useState(fullUser.zodiac || 'Aslan');
+    const [relationshipStatus, setRelationshipStatus] = useState(fullUser.relationship || 'İlişkisi Var');
 
     const handleSave = async () => {
         try {
@@ -54,8 +54,8 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
     const handleCancel = () => {
         setEditName(fullUser.name || user.name);
         setBirthDate(fullUser.birthDate ? new Date(fullUser.birthDate) : null);
-        setSelectedZodiac(fullUser.zodiac || 'Leo');
-        setRelationshipStatus(fullUser.relationship || 'In a Relationship');
+        setSelectedZodiac(fullUser.zodiac || 'Aslan');
+        setRelationshipStatus(fullUser.relationship || 'İlişkisi Var');
         setIsEditing(false);
     };
 
@@ -74,22 +74,22 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
     };
 
     const formatDateForView = (dateString) => {
-        if (!dateString) return 'Not set';
+        if (!dateString) return 'Belirtilmedi';
         const d = new Date(dateString);
         if (isNaN(d.getTime())) return dateString;
         return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
     const formatDateForEdit = (date) => {
-        if (!date) return 'MM / DD / YYYY';
+        if (!date) return 'Gün / Ay / Yıl';
         const d = new Date(date);
         return `${d.getMonth() + 1} / ${d.getDate()} / ${d.getFullYear()}`;
     };
 
     const infoItems = [
-        { key: 'birthDate', label: 'Birth Date', value: formatDateForView(fullUser.birthDate), icon: 'calendar-heart' },
-        { key: 'zodiac', label: 'Zodiac Sign', value: fullUser.zodiac || 'Not set', icon: 'zodiac-leo' },
-        { key: 'relationship', label: 'Relationship', value: fullUser.relationship || 'Not set', icon: 'heart-outline' },
+        { key: 'birthDate', label: 'Doğum Tarihi', value: formatDateForView(fullUser.birthDate), icon: 'calendar-heart' },
+        { key: 'zodiac', label: 'Burç', value: fullUser.zodiac || 'Belirtilmedi', icon: 'zodiac-leo' },
+        { key: 'relationship', label: 'İlişki Durumu', value: fullUser.relationship || 'Belirtilmedi', icon: 'heart-outline' },
     ];
 
     return (
@@ -114,7 +114,7 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                             style={[styles.userName, styles.userNameInput]}
                             value={editName}
                             onChangeText={setEditName}
-                            placeholder="Your Name"
+                            placeholder="Adınız"
                             placeholderTextColor="rgba(255, 255, 255, 0.3)"
                         />
                     ) : (
@@ -126,18 +126,18 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                 {/* User Details Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeaderRow}>
-                        <Text style={styles.sectionTitleNoMargin}>Cosmic Identity</Text>
+                        <Text style={styles.sectionTitleNoMargin}>Kozmik Kimlik</Text>
                         {!isEditing ? (
                             <TouchableOpacity onPress={() => setIsEditing(true)}>
-                                <Text style={styles.editActionText}>Edit</Text>
+                                <Text style={styles.editActionText}>Düzenle</Text>
                             </TouchableOpacity>
                         ) : (
                             <View style={{flexDirection: 'row', gap: 16}}>
                                 <TouchableOpacity onPress={handleCancel}>
-                                    <Text style={styles.cancelActionText}>Cancel</Text>
+                                    <Text style={styles.cancelActionText}>İptal</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={handleSave}>
-                                    <Text style={styles.saveActionText}>Save</Text>
+                                    <Text style={styles.saveActionText}>Kaydet</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -147,7 +147,7 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                         <View style={styles.formContainer}>
                             {/* Birth Date */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Birth Date</Text>
+                                <Text style={styles.inputLabel}>Doğum Tarihi</Text>
                                 <TouchableOpacity
                                     style={styles.textInputWrapper}
                                     onPress={() => setShowDatePicker(true)}
@@ -167,10 +167,10 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                                             <View style={styles.modalContent}>
                                                 <View style={styles.modalHeader}>
                                                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                                        <Text style={styles.modalCancelText}>Cancel</Text>
+                                                        <Text style={styles.modalCancelText}>İptal</Text>
                                                     </TouchableOpacity>
                                                     <TouchableOpacity onPress={handleConfirmDate}>
-                                                        <Text style={styles.modalDoneText}>Confirm</Text>
+                                                        <Text style={styles.modalDoneText}>Onayla</Text>
                                                     </TouchableOpacity>
                                                 </View>
                                                 <DateTimePicker
@@ -200,7 +200,7 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
 
                             {/* Zodiac Sign */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Zodiac Sign</Text>
+                                <Text style={styles.inputLabel}>Burç</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.zodiacScrollContent}>
                                     {ZODIAC_SIGNS.map((item) => (
                                         <TouchableOpacity
@@ -231,9 +231,9 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
 
                             {/* Relationship Status */}
                             <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Relationship Status</Text>
+                                <Text style={styles.inputLabel}>İlişki Durumu</Text>
                                 <View style={styles.pillGroup}>
-                                    {['Single', 'In a Relationship', 'Married', 'Complicated'].map((status) => (
+                                    {['Bekar', 'İlişkisi Var', 'Evli', 'Karışık'].map((status) => (
                                         <TouchableOpacity
                                             key={status}
                                             onPress={() => setRelationshipStatus(status)}
@@ -274,12 +274,12 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
 
                 {/* Actions Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Account</Text>
+                    <Text style={styles.sectionTitle}>Hesap</Text>
                     <TouchableOpacity style={styles.actionButton} onPress={onLogout}>
                         <View style={[styles.iconBackground, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
                             <MaterialCommunityIcons name="logout" size={22} color="#FF453A" />
                         </View>
-                        <Text style={[styles.actionText, { color: '#FF453A' }]}>Logout</Text>
+                        <Text style={[styles.actionText, { color: '#FF453A' }]}>Çıkış Yap</Text>
                         <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.3)" />
                     </TouchableOpacity>
                 </View>
@@ -289,18 +289,18 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('history')}>
                     <MaterialCommunityIcons name="history" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>History</Text>
+                    <Text style={styles.navText}>Geçmiş</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('home')}>
                     <MaterialCommunityIcons name="home-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>Home</Text>
+                    <Text style={styles.navText}>Ana Sayfa</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItemActive}>
                     <View style={styles.activeIndicator} />
                     <MaterialCommunityIcons name="account" size={26} color="#d4af37" />
-                    <Text style={styles.navTextActive}>Profile</Text>
+                    <Text style={styles.navTextActive}>Profil</Text>
                 </TouchableOpacity>
             </View>
         </View>

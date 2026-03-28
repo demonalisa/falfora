@@ -11,8 +11,8 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Title Section */}
                 <View style={styles.titleSection}>
-                    <Text style={styles.mainTitle}>Choose Your{"\n"}<Text style={styles.accentText}>Divination</Text></Text>
-                    <Text style={styles.subtitle}>Select how deep you want the stars to look into your destiny.</Text>
+                    <Text style={styles.mainTitle}>Kaderini{"\n"}<Text style={styles.accentText}>Keşfet</Text></Text>
+                    <Text style={styles.subtitle}>Yıldızların kaderine ne kadar derinden bakmasını istediğini seç.</Text>
                 </View>
 
                 {/* Fortune Options */}
@@ -31,11 +31,11 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                             />
                         </View>
                         <View style={styles.cardContent}>
-                            <Text style={styles.cardTitle}>Daily Insight</Text>
-                            <Text style={styles.cardDesc}>A quick overview for your day.</Text>
+                            <Text style={styles.cardTitle}>Günlük Bakış</Text>
+                            <Text style={styles.cardDesc}>Gününüz için hızlı bir genel bakış.</Text>
                         </View>
                         <View style={styles.cardBadge}>
-                            <Text style={styles.badgeText}>3 CARDS</Text>
+                            <Text style={styles.badgeText}>3 KART</Text>
                         </View>
                         {selectedType === '3_cards' && (
                             <View style={styles.checkIcon}>
@@ -58,11 +58,11 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                             />
                         </View>
                         <View style={styles.cardContent}>
-                            <Text style={styles.cardTitle}>Galactic Spread</Text>
-                            <Text style={styles.cardDesc}>A deep dive into your destiny.</Text>
+                            <Text style={styles.cardTitle}>Galaktik Açılım</Text>
+                            <Text style={styles.cardDesc}>Kaderinize derin bir dalış.</Text>
                         </View>
                         <View style={styles.cardBadge}>
-                            <Text style={styles.badgeText}>10 CARDS</Text>
+                            <Text style={styles.badgeText}>10 KART</Text>
                         </View>
                         {selectedType === '10_cards' && (
                             <View style={styles.checkIcon}>
@@ -87,7 +87,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         end={{ x: 1, y: 0 }}
                     >
                         <Text style={[styles.readButtonText, !selectedType && styles.readButtonTextDisabled]}>
-                            Read My Fortune
+                            Falımı Yorumla
                         </Text>
                         <MaterialCommunityIcons
                             name="auto-fix"
@@ -102,18 +102,18 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('history')}>
                     <MaterialCommunityIcons name="history" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>History</Text>
+                    <Text style={styles.navText}>Geçmiş</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItemActive}>
                     <View style={styles.activeIndicator} />
                     <MaterialCommunityIcons name="home-variant" size={26} color="#d4af37" />
-                    <Text style={styles.navTextActive}>Home</Text>
+                    <Text style={styles.navTextActive}>Ana Sayfa</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('profile')}>
                     <MaterialCommunityIcons name="account-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
-                    <Text style={styles.navText}>Profile</Text>
+                    <Text style={styles.navText}>Profil</Text>
                 </TouchableOpacity>
             </View>
         </View>
