@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
@@ -34,22 +34,41 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
         });
     };
 
-    const handleClearHistory = () => {
-        Alert.alert(
-            "Geçmişi Temizle",
-            "Tüm kozmik kayıtları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-            [
-                { text: "İptal", style: "cancel" },
-                {
-                    text: "Hepsini Sil",
-                    style: "destructive",
-                    onPress: async () => {
-                        await DatabaseService.clearReadings(user.id);
-                        setHistoryItems([]);
+    const handleClearHistory = async () => {
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm("Tüm kozmik kayıtları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.");
+            if (confirmed) {
+                await DatabaseService.clearReadings(user.id);
+                setHistoryItems([]);
+            }
+        } else {
+            Alert.alert(
+                "Geçmişi Temizle",
+                "Tüm kozmik kayıtları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+                [
+                    { text: "İptal", style: "cancel" },
+                    {
+                        text: "Hepsini Sil",
+                        style: "destructive",
+                        onPress: async () => {
+                            await DatabaseService.clearReadings(user.id);
+                            setHistoryItems([]);
+                        }
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
+    };
+
+    const sanitizeCardName = (cardName) => {
+        if (!cardName) return "";
+        let name = cardName;
+        const isReversed = name.includes('(Ters)');
+        // Parantez içindeki her şeyi (İngilizce isimleri ve Ters ibaresini) sil
+        name = name.replace(/\([^)]+\)/g, '').trim();
+        // Çift boşlukları temizle
+        name = name.replace(/\s{2,}/g, ' ');
+        return isReversed ? `Ters ${name}` : name;
     };
 
     return (
@@ -115,8 +134,9 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
                                     <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
                                 </View>
 
+                                <View style={{ height: 8 }} />
                                 <Text style={styles.outcomeText} numberOfLines={2}>
-                                    {item.cards.join(', ')}
+                                    {item.cards.map(c => sanitizeCardName(c)).join(', ')}
                                 </Text>
 
                                 <Text style={styles.readingPreview} numberOfLines={3}>

@@ -17,23 +17,27 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
     // Fullscreen Card Modal State
     const [selectedModalCard, setSelectedModalCard] = useState(null);
 
-    const { width } = useWindowDimensions();
-    const [slideWidth, setSlideWidth] = useState(width - 92); // Default fallback
+    const { width: screenWidth } = useWindowDimensions();
+    const [slideWidth, setSlideWidth] = useState(screenWidth - 92);
     const scrollViewRef = useRef(null);
+    const cardsScrollViewRef = useRef(null);
+    
+    // To prevent infinite loop in bi-directional scrolling
+    const activeScroll = useRef(null); 
 
     const processReadingText = (readingDataRaw) => {
         if (!readingDataRaw) return [];
-        
+
         // NEW: If backend already returns a perfected JSON array, just clean artifacts and use it!
         if (Array.isArray(readingDataRaw)) {
             return readingDataRaw.map(p => p.replace(/[*#]/g, '').replace(/[-_=]{2,}/g, '').trim()).filter(p => p.length > 0);
         }
-        
+
         // LEGACY OLD FALLBACK: Support for old history readings that were saved as plain continuous strings
         const text = String(readingDataRaw);
         const cleaned = text.replace(/[*#]/g, '').replace(/[-_=]{2,}/g, '');
         let slides = cleaned.split(/\[SLAYT\]/i).map(p => p.trim()).filter(p => p.length > 0);
-        
+
         if (slides.length <= 2) {
             const rawLines = cleaned.split(/\n+/).map(p => p.trim()).filter(p => p.length > 0);
             slides = [];
@@ -46,11 +50,26 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 }
             }
         }
-        
+
         return slides;
     };
 
     const paragraphs = processReadingText(readingData?.reading);
+
+    const sanitizeCardName = (cardName) => {
+        if (!cardName) return "";
+        let name = cardName;
+
+        const isReversed = name.includes('(Ters)');
+        // Remove English names and anything else in parens
+        // This removes (The Fool), (Ters) etc.
+        name = name.replace(/\([^)]+\)/g, '').trim();
+
+        // Final polish for 'Major Arcana' or double spaces
+        name = name.replace(/\s{2,}/g, ' ');
+
+        return isReversed ? `Ters ${name}` : name;
+    };
 
     const getSlideTitle = (index) => {
         const total = paragraphs.length;
@@ -61,7 +80,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
 
         const cardIndex = index - 1;
         if (readingData?.cards && cardIndex >= 0 && cardIndex < readingData.cards.length) {
-            return `${cardIndex + 1}. Kart: ${readingData.cards[cardIndex]}`;
+            return `${cardIndex + 1}. Kart: ${sanitizeCardName(readingData.cards[cardIndex])}`;
         }
         return "Yorum"; // Fallback
     };
@@ -116,7 +135,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             });
 
             if (!response.ok) {
-                throw new Error('Üzgünüz, yıldızlar şu an biraz bulanık. Lütfen tekrar deneyin.');
+                console.error('[ReadingScreen] API Response Error Status:', response.status);
+                throw new Error(`Üzgünüz, yıldızlar şu an biraz bulanık. Lütfen tekrar deneyin. (Hata Kodu: ${response.status})`);
             }
 
             const data = await response.json();
@@ -177,36 +197,99 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 ) : (
                     <>
                         {/* Cards Display */}
-                        <View style={{ flexGrow: 0, marginBottom: 8 }}>
+                        <View style={{ flexGrow: 0, marginBottom: 12, overflow: 'visible' }}>
                             <Text style={styles.sectionTitle}>Seçilen Kartlarınız</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={styles.cardsScroll}>
-                            {readingData?.cards.map((card, index) => {
-                                const imageSource = getCardImage(card);
-                                const isReversed = card.includes('(Ters)');
+                        <ScrollView 
+                            ref={cardsScrollViewRef}
+                            horizontal 
+                            showsHorizontalScrollIndicator={false} 
+                            style={{ flexGrow: 0 }} 
+                            contentContainerStyle={styles.cardsScroll}
+                            scrollEnabled={true}
+                            onScroll={(event) => {
+                                // Sadece bu liste aktif olarak kaydırılıyorsa alttaki slaytları yönet
+                                if (activeScroll.current !== 'top') return;
+
+                                const scrollX = event.nativeEvent.contentOffset.x;
+                                const cardWidth = 88;
+                                const halfScreen = screenWidth / 2;
+                                const halfCard = cardWidth / 2;
+
+                                // Kart listesindeki pozisyonu alt slayt indeksine çevir
+                                const virtualIndex = (scrollX + halfScreen - halfCard) / cardWidth + 1;
+                                const roundIndex = Math.round(virtualIndex);
+
+                                // Sayfayı (currentPage) ve dolayısıyla Highlight + Başlığı güncelle
+                                if (currentPage !== roundIndex) {
+                                    setCurrentPage(roundIndex);
+                                }
                                 
-                                return (
-                                    <TouchableOpacity 
-                                        key={index} 
-                                        style={styles.cardItem}
-                                        activeOpacity={0.7}
-                                        onPress={() => setSelectedModalCard({ name: card, image: imageSource, isReversed })}
-                                    >
-                                        <View style={styles.cardArt}>
-                                            {imageSource ? (
-                                                <Image 
-                                                    source={imageSource} 
-                                                    style={[styles.cardImage, isReversed && { transform: [{ rotate: '180deg' }] }]}
-                                                    resizeMode="cover"
-                                                />
-                                            ) : (
-                                                <MaterialCommunityIcons name="cards-playing-outline" size={40} color="#d4af37" />
-                                            )}
-                                        </View>
-                                        <Text style={styles.cardName} numberOfLines={2}>{card}</Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </ScrollView>
+                                if (scrollViewRef.current) {
+                                    scrollViewRef.current.scrollTo({
+                                        x: virtualIndex * slideWidth,
+                                        animated: false
+                                    });
+                                }
+                            }}
+                            // WEB İÇİN ÖZEL DOKUNUŞ TAKİBİ
+                            onMouseDown={() => { activeScroll.current = 'top'; }}
+                            onTouchStart={() => { activeScroll.current = 'top'; }}
+                            onScrollEndDrag={() => { activeScroll.current = null; }}
+                            onMomentumScrollEnd={() => { activeScroll.current = null; }}
+                            scrollEventThrottle={16}
+                        >
+                                {readingData?.cards.map((card, index) => {
+                                    const imageSource = getCardImage(card);
+                                    const isReversed = card.includes('(Ters)');
+                                    return (
+                                        <TouchableOpacity 
+                                            key={index} 
+                                            style={[
+                                                styles.cardItem, 
+                                                currentPage === index + 1 && styles.cardItemHighlight
+                                            ]}
+                                            activeOpacity={0.7}
+                                            // TEK DOKUNUŞ: O slayta git
+                                            onPress={() => {
+                                                if (scrollViewRef.current) {
+                                                    // Önce sayfayı ve paralamayı (highlight) hemen güncelle
+                                                    setCurrentPage(index + 1);
+                                                    
+                                                    // Sonra pürüzsüzce o konuma kaydır
+                                                    scrollViewRef.current.scrollTo({
+                                                        x: (index + 1) * slideWidth,
+                                                        animated: true
+                                                    });
+                                                }
+                                            }}
+                                            // BASILI TUTMA: Büyük resmi aç
+                                            onLongPress={() => {
+                                                setSelectedModalCard({ 
+                                                    name: card, 
+                                                    image: imageSource, 
+                                                    isReversed 
+                                                });
+                                            }}
+                                            delayLongPress={500} // Yarım saniye basılı tutma süresi
+                                        >
+                                            <View style={[styles.cardArt, currentPage === index + 1 && styles.cardArtHighlight]}>
+                                                {imageSource ? (
+                                                    <Image 
+                                                        source={imageSource} 
+                                                        style={[styles.cardImage, isReversed && { transform: [{ rotate: '180deg' }] }]}
+                                                        resizeMode="cover"
+                                                    />
+                                                ) : (
+                                                    <MaterialCommunityIcons name="cards-playing-outline" size={40} color="#d4af37" />
+                                                )}
+                                            </View>
+                                            <Text style={[styles.cardName, currentPage === index + 1 && styles.cardNameHighlight]} numberOfLines={2}>
+                                                {sanitizeCardName(card)}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
                         </View>
 
                         {/* Reading Text */}
@@ -219,19 +302,41 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                             {paragraphs.length > 0 ? (
                                 <>
                                     <View style={{ flex: 1 }} onLayout={(e) => setSlideWidth(e.nativeEvent.layout.width)}>
-                                        <ScrollView 
+                                        <ScrollView
                                             ref={scrollViewRef}
-                                            horizontal 
-                                            pagingEnabled 
+                                            horizontal
+                                            pagingEnabled
                                             showsHorizontalScrollIndicator={false}
                                             onScroll={(event) => {
+                                                if (activeScroll.current !== 'bottom') return;
+
+                                                const scrollX = event.nativeEvent.contentOffset.x;
                                                 const slideSize = event.nativeEvent.layoutMeasurement.width;
-                                                const index = event.nativeEvent.contentOffset.x / slideSize;
+                                                const index = scrollX / slideSize;
                                                 const roundIndex = Math.round(index);
+                                                
                                                 if (currentPage !== roundIndex) {
                                                     setCurrentPage(roundIndex);
                                                 }
+
+                                                // GÜVENLİ SENKRONİZASYON (Layout bozmadan)
+                                                if (cardsScrollViewRef.current) {
+                                                    const cardWidth = 88; 
+                                                    const halfScreen = screenWidth / 2;
+                                                    const halfCard = cardWidth / 2;
+                                                    const targetTopX = ((index - 1) * cardWidth) - halfScreen + halfCard;
+                                                    
+                                                    cardsScrollViewRef.current.scrollTo({
+                                                        x: Math.max(0, targetTopX),
+                                                        animated: false
+                                                    });
+                                                }
                                             }}
+                                            // WEB İÇİN ÖZEL DOKUNUŞ TAKİBİ (ALTA DA EKLENİYOR)
+                                            onMouseDown={() => { activeScroll.current = 'bottom'; }}
+                                            onTouchStart={() => { activeScroll.current = 'bottom'; }}
+                                            onScrollEndDrag={() => { activeScroll.current = null; }}
+                                            onMomentumScrollEnd={() => { activeScroll.current = null; }}
                                             scrollEventThrottle={16}
                                         >
                                             {paragraphs.map((p, i) => (
@@ -289,22 +394,22 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 animationType="fade"
                 onRequestClose={() => setSelectedModalCard(null)}
             >
-                <TouchableOpacity 
-                    style={styles.modalBackdrop} 
-                    activeOpacity={1} 
+                <TouchableOpacity
+                    style={styles.modalBackdrop}
+                    activeOpacity={1}
                     onPress={() => setSelectedModalCard(null)}
                 >
                     <View style={styles.modalContent}>
                         {selectedModalCard?.image ? (
-                            <Image 
-                                source={selectedModalCard.image} 
+                            <Image
+                                source={selectedModalCard.image}
                                 style={[styles.modalImage, selectedModalCard?.isReversed && { transform: [{ rotate: '180deg' }] }]}
                                 resizeMode="contain"
                             />
                         ) : (
                             <MaterialCommunityIcons name="cards-playing-outline" size={150} color="#d4af37" />
                         )}
-                        <Text style={styles.modalCardName}>{selectedModalCard?.name}</Text>
+                        <Text style={styles.modalCardName}>{sanitizeCardName(selectedModalCard?.name)}</Text>
                         <Text style={styles.modalCloseText}>Kapatmak için dokunun</Text>
                     </View>
                 </TouchableOpacity>
@@ -393,8 +498,9 @@ const styles = StyleSheet.create({
         marginTop: 0,
     },
     cardsScroll: {
-        paddingBottom: 8,
-        maxHeight: 120,
+        paddingVertical: 10, // Added padding to allow glow to breathe
+        paddingHorizontal: 4,
+        overflow: 'visible', // Allow content to pop out
     },
     cardItem: {
         width: 76,
@@ -427,6 +533,23 @@ const styles = StyleSheet.create({
         fontSize: 9,
         fontWeight: 'bold',
         textAlign: 'center',
+    },
+    cardItemHighlight: {
+        borderColor: '#d4af37',
+        backgroundColor: 'rgba(212, 175, 55, 0.15)',
+        transform: [{ scale: 1.1 }], // Slightly bigger for more impact
+        elevation: 15,
+        zIndex: 100, // Ensure it's above everything
+    },
+    cardArtHighlight: {
+        borderColor: '#d4af37',
+        shadowColor: '#d4af37',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 10,
+    },
+    cardNameHighlight: {
+        color: '#d4af37',
     },
     readingContainer: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -580,15 +703,15 @@ const styles = StyleSheet.create({
     },
     modalBackdrop: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 24,
+        padding: 20,
     },
     modalContent: {
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
+        maxWidth: '100%',
     },
     modalImage: {
         width: 250,
