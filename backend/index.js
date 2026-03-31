@@ -12,7 +12,7 @@ if (fs.existsSync(secretPath)) {
 
 const express = require('express');
 const cors = require('cors');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 const { pickRandomCards } = require('./cards');
 const { checkJwt } = require('./middleware/auth');
 
@@ -20,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Verify required environment variables
-const requiredEnv = ['GEMINI_API_KEY', 'AUTH0_DOMAIN', 'AUTH0_AUDIENCE'];
+const requiredEnv = ['GROQ_API_KEY', 'AUTH0_DOMAIN', 'AUTH0_AUDIENCE'];
 const missingEnv = requiredEnv.filter(k => !process.env[k]);
 
 if (missingEnv.length > 0) {
@@ -28,13 +28,12 @@ if (missingEnv.length > 0) {
     console.warn('Backend may not function correctly. Ensure these are set in Render (Environment or Secret Files).');
 }
 
-// Gemini Configuration
-if (!process.env.GEMINI_API_KEY) {
-    console.error('[ERROR] GEMINI_API_KEY is not defined! API calls will fail.');
+// Groq Configuration
+if (!process.env.GROQ_API_KEY) {
+    console.error('[ERROR] GROQ_API_KEY is not defined! API calls will fail.');
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key');
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.use(cors());
 app.use(express.json());
@@ -102,16 +101,35 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
       ]
     `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().replace(/```json/gi, '').replace(/```/g, '').trim();
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: 'system',
+                    content: 'Sen kadim bilgilere sahip, sezgileri çok güçlü bir Tarot Ustasısın. Kullanıcıya mistik ve etkileyici tarot falı yorumları yaparsın. Yanıtlarını her zaman geçerli JSON formatında döndürürsün.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            model: 'llama-3.3-70b-versatile',
+            temperature: 0.9,
+            max_tokens: 4096,
+            response_format: { type: 'json_object' }
+        });
+
+        const text = chatCompletion.choices[0]?.message?.content || '[]';
 
         let slidesArray;
         try {
-            slidesArray = JSON.parse(text);
+            const parsed = JSON.parse(text);
+            // Groq json_object mode wraps in an object, extract the array
+            slidesArray = Array.isArray(parsed) ? parsed : (parsed.reading || parsed.paragraphs || parsed.slides || Object.values(parsed)[0]);
+            if (!Array.isArray(slidesArray)) {
+                slidesArray = [text];
+            }
         } catch (e) {
             console.error('JSON Parse Error, falling back to string:', e, text);
-            // Fallback just in case
             slidesArray = [text];
         }
 
@@ -121,7 +139,7 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
             reading: slidesArray
         });
     } catch (error) {
-        console.error('Gemini Error:', error);
+        console.error('Groq Error:', error);
         res.status(500).json({ error: 'Tarot falı oluşturulurken bir hata oluştu.' });
     }
 });
