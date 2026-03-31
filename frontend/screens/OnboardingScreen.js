@@ -18,14 +18,56 @@ const ZODIAC_SIGNS = [
     { name: 'Balık', icon: 'zodiac-pisces' },
 ];
 
+function getZodiacFromDate(date) {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Koç';
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Boğa';
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'İkizler';
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Yengeç';
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Aslan';
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Başak';
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Terazi';
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Akrep';
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Yay';
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Oğlak';
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Kova';
+    if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Balık';
+    return 'Koç';
+}
+
+const MONTHS = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+];
+
+const DAYS = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+const YEARS = Array.from({ length: 100 }, (_, i) => (new Date().getFullYear() - i).toString());
+
 export default function OnboardingScreen({ onComplete, onBack }) {
     const [birthDate, setBirthDate] = useState(null);
     const [tempDate, setTempDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedZodiac, setSelectedZodiac] = useState('Aslan');
     const [relationshipStatus, setRelationshipStatus] = useState('İlişkisi Var');
+    const [selectedGender, setSelectedGender] = useState('Kadın');
     const [dateError, setDateError] = useState(false);
+    const [isZodiacAuto, setIsZodiacAuto] = useState(false);
     const webDateInputRef = useRef(null);
+
+    // Auto-detect zodiac from birth date
+    useEffect(() => {
+        if (birthDate) {
+            const zodiac = getZodiacFromDate(birthDate);
+            setSelectedZodiac(zodiac);
+            setIsZodiacAuto(true);
+        }
+    }, [birthDate]);
+
+    const handleZodiacSelect = (zodiacName) => {
+        setSelectedZodiac(zodiacName);
+        setIsZodiacAuto(false); // User manually changed it
+    };
 
     const onDateChange = (event, selectedDate) => {
         if (Platform.OS === 'android') {
@@ -59,7 +101,8 @@ export default function OnboardingScreen({ onComplete, onBack }) {
         onComplete({
             birthDate: birthDate.toISOString(),
             zodiac: selectedZodiac,
-            relationship: relationshipStatus
+            relationship: relationshipStatus,
+            gender: selectedGender
         });
     };
 
@@ -82,37 +125,70 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                     {/* Birth Date Section */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>Doğum Tarihi * {dateError && <Text style={{color: '#ff4d4d', textTransform: 'none'}}> (Gerekli)</Text>}</Text>
-                        <TouchableOpacity
-                            style={styles.textInputWrapper}
-                            onPress={() => Platform.OS !== 'web' && setShowDatePicker(true)}
-                            activeOpacity={Platform.OS === 'web' ? 1 : 0.7}
-                        >
-                            <View style={[styles.textInput, dateError && styles.textInputError]}>
-                                <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
-                                    {formatDate(birthDate)}
-                                </Text>
-                            </View>
-                            <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
-                            
-                            {Platform.OS === 'web' && (
-                                <input
-                                    ref={webDateInputRef}
-                                    type="date"
-                                    style={styles.webInputOverlay}
-                                    max={new Date().toISOString().split('T')[0]}
-                                    onChange={(e) => {
-                                        const dateValue = e.target.value;
-                                        if (dateValue) {
-                                            const date = new Date(dateValue);
-                                            if (!isNaN(date.getTime())) {
-                                                setBirthDate(date);
-                                                setDateError(false);
-                                            }
-                                        }
-                                    }}
-                                />
+                        <View style={Platform.OS === 'web' ? styles.webDateContainer : styles.textInputWrapper}>
+                            {Platform.OS === 'web' ? (
+                                <View style={styles.webSelectGroup}>
+                                    <select 
+                                        style={styles.webSelect}
+                                        value={birthDate ? birthDate.getDate().toString() : ''}
+                                        onChange={(e) => {
+                                            const day = parseInt(e.target.value);
+                                            const newDate = new Date(birthDate || new Date());
+                                            newDate.setDate(day);
+                                            setBirthDate(new Date(newDate));
+                                            setDateError(false);
+                                        }}
+                                    >
+                                        <option value="" disabled>Gün</option>
+                                        {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                                    </select>
+
+                                    <select 
+                                        style={styles.webSelect}
+                                        value={birthDate ? birthDate.getMonth().toString() : ''}
+                                        onChange={(e) => {
+                                            const month = parseInt(e.target.value);
+                                            const newDate = new Date(birthDate || new Date());
+                                            newDate.setMonth(month);
+                                            setBirthDate(new Date(newDate));
+                                            setDateError(false);
+                                        }}
+                                    >
+                                        <option value="" disabled>Ay</option>
+                                        {MONTHS.map((m, i) => <option key={m} value={i.toString()}>{m}</option>)}
+                                    </select>
+
+                                    <select 
+                                        style={styles.webSelect}
+                                        value={birthDate ? birthDate.getFullYear().toString() : ''}
+                                        onChange={(e) => {
+                                            const year = parseInt(e.target.value);
+                                            const newDate = new Date(birthDate || new Date());
+                                            newDate.setFullYear(year);
+                                            setBirthDate(new Date(newDate));
+                                            setDateError(false);
+                                        }}
+                                    >
+                                        <option value="" disabled>Yıl</option>
+                                        {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                                    </select>
+                                </View>
+                            ) : (
+                                <>
+                                    <TouchableOpacity
+                                        style={styles.textInputWrapper}
+                                        onPress={() => setShowDatePicker(true)}
+                                    >
+                                        <View style={[styles.textInput, dateError && styles.textInputError]}>
+                                            <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
+                                                {formatDate(birthDate)}
+                                            </Text>
+                                        </View>
+                                        <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
+                                    </TouchableOpacity>
+                                </>
                             )}
-                        </TouchableOpacity>
+                        </View>
 
                         {/* iOS Modal */}
                         {Platform.OS === 'ios' && (
@@ -151,9 +227,19 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                         )}
                     </View>
 
+                    {/* Auto-detected zodiac info */}
+                    {isZodiacAuto && (
+                        <View style={styles.zodiacInfoBanner}>
+                            <MaterialCommunityIcons name="star-four-points" size={16} color="#d4af37" />
+                            <Text style={styles.zodiacInfoText}>
+                                Burcunuz <Text style={styles.zodiacInfoHighlight}>{selectedZodiac}</Text> olarak belirlendi ✨
+                            </Text>
+                        </View>
+                    )}
+
                     {/* Zodiac Selection */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Burç</Text>
+                        <Text style={styles.inputLabel}>Burç {isZodiacAuto ? '(Otomatik)' : ''}</Text>
                         <View style={styles.zodiacScrollWrapper}>
                             <ScrollView
                                 horizontal
@@ -163,7 +249,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 {ZODIAC_SIGNS.map((item) => (
                                     <TouchableOpacity
                                         key={item.name}
-                                        onPress={() => setSelectedZodiac(item.name)}
+                                        onPress={() => handleZodiacSelect(item.name)}
                                         style={[styles.zodiacCard, selectedZodiac === item.name && styles.zodiacCardSelected]}
                                     >
                                         <MaterialCommunityIcons
@@ -177,6 +263,30 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
+                        </View>
+                    </View>
+
+                    {/* Gender Selection */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Cinsiyet</Text>
+                        <View style={styles.pillGroup}>
+                            {['Kadın', 'Erkek'].map((gender) => (
+                                <TouchableOpacity
+                                    key={gender}
+                                    onPress={() => setSelectedGender(gender)}
+                                    style={[styles.pillButton, selectedGender === gender && styles.pillButtonActive, { flex: 1, alignItems: 'center' }]}
+                                >
+                                    <MaterialCommunityIcons 
+                                        name={gender === 'Kadın' ? 'gender-female' : 'gender-male'} 
+                                        size={20} 
+                                        color={selectedGender === gender ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'} 
+                                        style={{ marginBottom: 4 }}
+                                    />
+                                    <Text style={[styles.pillText, selectedGender === gender && styles.pillTextActive]}>
+                                        {gender}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     </View>
 
@@ -305,6 +415,29 @@ const styles = StyleSheet.create({
         cursor: 'pointer',
         zIndex: 10,
     },
+    webDateContainer: {
+        width: '100%',
+    },
+    webSelectGroup: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    webSelect: {
+        flex: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderRadius: 12,
+        height: 52,
+        color: 'white',
+        fontSize: 14,
+        paddingHorizontal: 4,
+        outline: 'none',
+        appearance: 'none',
+        cursor: 'pointer',
+        textAlign: 'center',
+        textAlignLast: 'center', // Safari and others centering fix
+    },
     zodiacScrollWrapper: {
         height: 90,
     },
@@ -358,6 +491,26 @@ const styles = StyleSheet.create({
     pillText: {
         color: 'rgba(255, 255, 255, 0.8)',
         fontSize: 13,
+    },
+    zodiacInfoBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: 'rgba(212, 175, 55, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(212, 175, 55, 0.25)',
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+    },
+    zodiacInfoText: {
+        color: 'rgba(255, 255, 255, 0.8)',
+        fontSize: 13,
+        fontFamily: 'Inter_400Regular',
+    },
+    zodiacInfoHighlight: {
+        color: '#d4af37',
+        fontFamily: 'Inter_700Bold',
     },
     pillTextActive: {
         color: '#d4af37',

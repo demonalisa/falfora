@@ -38,10 +38,10 @@ export const AuthService = {
             if (typeof window !== 'undefined') {
                 // WEB FLOW (using @auth0/auth0-spa-js)
                 const client = await getSpaClient();
-                
+
                 // Use popup instead of redirect for smoother integration with Expo/RN Web
                 await client.loginWithPopup();
-                
+
                 const user = await client.getUser();
                 const accessToken = await client.getTokenSilently();
 
@@ -96,7 +96,7 @@ export const AuthService = {
                 // WEB FLOW
                 const client = await getSpaClient();
                 const returnTo = window.location.origin + "/falfora/";
-                
+
                 await client.logout({
                     logoutParams: {
                         returnTo: returnTo
