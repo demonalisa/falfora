@@ -1,8 +1,7 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Modal, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { DatabaseService } from '../services/database';
 
 const ZODIAC_SIGNS = [
@@ -24,54 +23,36 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
     const fullUser = userInfo || {};
     const webDateInputRef = useRef(null);
 
-    const [isEditing, setIsEditing] = useState(false);
-    
-    // Manage editing state separately
-    const [editName, setEditName] = useState(fullUser.name || user.name);
-    const [birthDate, setBirthDate] = useState(fullUser.birthDate ? new Date(fullUser.birthDate) : null);
-    const [tempDate, setTempDate] = useState(new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [selectedZodiac, setSelectedZodiac] = useState(fullUser.zodiac || 'Aslan');
     const [relationshipStatus, setRelationshipStatus] = useState(fullUser.relationship || 'İlişkisi Var');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const hasChanged = relationshipStatus !== (fullUser.relationship || 'İlişkisi Var');
 
     const handleSave = async () => {
+        if (isSaving || !hasChanged) return;
+        
+        setIsSaving(true);
         try {
             const editData = {
-                name: editName,
-                birthDate: birthDate ? birthDate.toISOString() : fullUser.birthDate,
-                zodiac: selectedZodiac,
                 relationship: relationshipStatus
             };
             const updatedUser = await DatabaseService.saveUser(user.id, editData);
             if (updatedUser) {
                 setUserInfo(updatedUser);
             }
-            setIsEditing(false);
         } catch (error) {
             console.error('Error saving user data:', error);
+        } finally {
+            // We keep isSaving true until it changes again or some other logic?
+            // User said: "tıklayınca gri ve dokunulamaz hale gelsin"
+            // If we set isSaving(true) it becomes gray/disabled.
+            // If the request finishes, it should probably stay disabled if it's saved.
+            // Actually, once saved, hasChanged will become false (because fullUser updates).
+            // So the button will disappear anyway. 
+            // BUT the user specifically wants it to become gray and disabled when clicked.
+            // So I'll keep isSaving true during the process, and after it updates, the button will hide.
+            setIsSaving(false);
         }
-    };
-
-    const handleCancel = () => {
-        setEditName(fullUser.name || user.name);
-        setBirthDate(fullUser.birthDate ? new Date(fullUser.birthDate) : null);
-        setSelectedZodiac(fullUser.zodiac || 'Aslan');
-        setRelationshipStatus(fullUser.relationship || 'İlişkisi Var');
-        setIsEditing(false);
-    };
-
-    const onDateChange = (event, selectedDate) => {
-        if (Platform.OS === 'android') {
-            setShowDatePicker(false);
-            if (selectedDate) setBirthDate(selectedDate);
-        } else {
-            if (selectedDate) setTempDate(selectedDate);
-        }
-    };
-
-    const handleConfirmDate = () => {
-        setBirthDate(tempDate);
-        setShowDatePicker(false);
     };
 
     const formatDateForView = (dateString) => {
@@ -81,17 +62,13 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
         return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    const formatDateForEdit = (date) => {
-        if (!date) return 'Gün / Ay / Yıl';
-        const d = new Date(date);
-        return `${d.getMonth() + 1} / ${d.getDate()} / ${d.getFullYear()}`;
-    };
-
     const infoItems = [
         { key: 'birthDate', label: 'Doğum Tarihi', value: formatDateForView(fullUser.birthDate), icon: 'calendar-heart' },
         { key: 'zodiac', label: 'Burç', value: fullUser.zodiac || 'Belirtilmedi', icon: 'zodiac-leo' },
-        { key: 'relationship', label: 'İlişki Durumu', value: fullUser.relationship || 'Belirtilmedi', icon: 'heart-outline' },
+        { key: 'gender', label: 'Cinsiyet', value: fullUser.gender || 'Belirtilmedi', icon: fullUser.gender === 'Erkek' ? 'gender-male' : 'gender-female' },
     ];
+
+    const RELATIONS = ['Bekar', 'İlişkisi Var', 'Evli', 'Karışık'];
 
     return (
         <View style={styles.container}>
@@ -106,21 +83,8 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                         <View style={styles.avatarCircle}>
                             <MaterialCommunityIcons name="account" size={60} color="#d4af37" />
                         </View>
-                        <TouchableOpacity style={styles.editAvatarButton}>
-                            <MaterialIcons name="edit" size={16} color="#1c1022" />
-                        </TouchableOpacity>
                     </View>
-                    {isEditing ? (
-                        <TextInput
-                            style={[styles.userName, styles.userNameInput]}
-                            value={editName}
-                            onChangeText={setEditName}
-                            placeholder="Adınız"
-                            placeholderTextColor="rgba(255, 255, 255, 0.3)"
-                        />
-                    ) : (
-                        <Text style={styles.userName}>{fullUser.name || user.name}</Text>
-                    )}
+                    <Text style={styles.userName}>{fullUser.name || user.name}</Text>
                     <Text style={styles.userId}>ID: {user.id.substring(0, 12)}...</Text>
                 </View>
 
@@ -128,185 +92,72 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                 <View style={styles.section}>
                     <View style={styles.sectionHeaderRow}>
                         <Text style={styles.sectionTitleNoMargin}>Kozmik Kimlik</Text>
-                        {!isEditing ? (
-                            <TouchableOpacity onPress={() => setIsEditing(true)}>
-                                <Text style={styles.editActionText}>Düzenle</Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <View style={{flexDirection: 'row', gap: 16}}>
-                                <TouchableOpacity onPress={handleCancel}>
-                                    <Text style={styles.cancelActionText}>İptal</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={handleSave}>
-                                    <Text style={styles.saveActionText}>Kaydet</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
                     </View>
 
-                    {isEditing ? (
-                        <View style={styles.formContainer}>
-                            {/* Birth Date */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Doğum Tarihi</Text>
-                                <TouchableOpacity
-                                    style={styles.textInputWrapper}
-                                    onPress={() => {
-                                        if (Platform.OS !== 'web') {
-                                            setShowDatePicker(true);
-                                        } else if (webDateInputRef.current) {
-                                            // Modern way to show native picker on web
-                                            try {
-                                                if (typeof webDateInputRef.current.showPicker === 'function') {
-                                                    webDateInputRef.current.showPicker();
-                                                } else {
-                                                    webDateInputRef.current.click();
-                                                }
-                                            } catch (e) {
-                                                webDateInputRef.current.click();
-                                            }
-                                        }
-                                    }}
-                                    activeOpacity={Platform.OS === 'web' ? 0.6 : 0.7}
-                                >
-                                    <View style={styles.textInputBox}>
-                                        <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
-                                            {formatDateForEdit(birthDate)}
-                                        </Text>
-                                    </View>
-                                    <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
-                                    
-                                    {/* Web-specific native date picker (hidden) */}
-                                    {Platform.OS === 'web' && (
-                                        <input
-                                            ref={webDateInputRef}
-                                            type="date"
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0, left: 0, right: 0, bottom: 0,
-                                                opacity: 0,
-                                                width: 0,
-                                                height: 0,
-                                                pointerEvents: 'none'
-                                            }}
-                                            max={new Date().toISOString().split('T')[0]}
-                                            onChange={(e) => {
-                                                const date = new Date(e.target.value);
-                                                if (!isNaN(date.getTime())) setBirthDate(date);
-                                            }}
-                                        />
-                                    )}
-                                </TouchableOpacity>
-
-                                {/* iOS Date Picker Modal */}
-                                {Platform.OS === 'ios' && (
-                                    <Modal transparent={true} animationType="slide" visible={showDatePicker}>
-                                        <View style={styles.modalOverlay}>
-                                            <View style={styles.modalContent}>
-                                                <View style={styles.modalHeader}>
-                                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                                        <Text style={styles.modalCancelText}>İptal</Text>
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity onPress={handleConfirmDate}>
-                                                        <Text style={styles.modalDoneText}>Onayla</Text>
-                                                    </TouchableOpacity>
-                                                </View>
-                                                <DateTimePicker
-                                                    value={tempDate}
-                                                    mode="date"
-                                                    display="spinner"
-                                                    onChange={onDateChange}
-                                                    maximumDate={new Date()}
-                                                    textColor="white"
-                                                />
-                                            </View>
-                                        </View>
-                                    </Modal>
-                                )}
-
-                                {/* Android Date Picker */}
-                                {Platform.OS === 'android' && showDatePicker && (
-                                    <DateTimePicker
-                                        value={birthDate || new Date()}
-                                        mode="date"
-                                        display="default"
-                                        onChange={onDateChange}
-                                        maximumDate={new Date()}
-                                    />
-                                )}
+                    <View style={styles.infoCard}>
+                        {infoItems.map((item, index) => (
+                            <View key={item.key} style={styles.infoItem}>
+                                <View style={styles.iconBackground}>
+                                    <MaterialCommunityIcons name={item.icon} size={22} color="#d4af37" />
+                                </View>
+                                <View style={styles.infoTextContainer}>
+                                    <Text style={styles.infoLabel}>{item.label}</Text>
+                                    <Text style={styles.infoValue}>{item.value}</Text>
+                                </View>
                             </View>
-
-                            {/* Zodiac Sign */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>Burç</Text>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.zodiacScrollContent}>
-                                    {ZODIAC_SIGNS.map((item) => (
-                                        <TouchableOpacity
-                                            key={item.name}
-                                            onPress={() => setSelectedZodiac(item.name)}
-                                            style={[
-                                                styles.zodiacCard,
-                                                selectedZodiac === item.name && styles.zodiacCardSelected,
-                                            ]}
-                                        >
-                                            <MaterialCommunityIcons
-                                                name={item.icon}
-                                                size={32}
-                                                color={selectedZodiac === item.name ? '#d4af37' : 'rgba(255, 255, 255, 0.5)'}
-                                            />
-                                            <Text
+                        ))}
+                        
+                        {/* Relationship Status Dropdown Selection */}
+                        <View style={[styles.infoItem, styles.noBorder]}>
+                            <View style={styles.iconBackground}>
+                                <MaterialCommunityIcons name="heart-outline" size={22} color="#d4af37" />
+                            </View>
+                            <View style={styles.infoTextContainer}>
+                                <Text style={styles.infoLabel}>İlişki Durumu</Text>
+                                <View style={styles.relationshipSelectContainer}>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillGroupCompact}>
+                                        {RELATIONS.map((status) => (
+                                            <TouchableOpacity
+                                                key={status}
+                                                onPress={() => setRelationshipStatus(status)}
                                                 style={[
-                                                    styles.zodiacName,
-                                                    selectedZodiac === item.name ? styles.zodiacNameActive : styles.zodiacNameInactive,
+                                                    styles.pillButtonSmall,
+                                                    relationshipStatus === status && styles.pillButtonSmallActive,
                                                 ]}
                                             >
-                                                {item.name}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
-                            </View>
-
-                            {/* Relationship Status */}
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.inputLabel}>İlişki Durumu</Text>
-                                <View style={styles.pillGroup}>
-                                    {['Bekar', 'İlişkisi Var', 'Evli', 'Karışık'].map((status) => (
-                                        <TouchableOpacity
-                                            key={status}
-                                            onPress={() => setRelationshipStatus(status)}
-                                            style={[
-                                                styles.pillButton,
-                                                relationshipStatus === status && styles.pillButtonActive,
-                                            ]}
-                                        >
-                                            <Text
-                                                style={[
-                                                    styles.pillText,
-                                                    relationshipStatus === status && styles.pillTextActive,
-                                                ]}
-                                            >
-                                                {status}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
+                                                <Text
+                                                    style={[
+                                                        styles.pillTextSmall,
+                                                        relationshipStatus === status && styles.pillTextSmallActive,
+                                                    ]}
+                                                >
+                                                    {status}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
                                 </View>
                             </View>
                         </View>
-                    ) : (
-                        <View style={styles.infoCard}>
-                            {infoItems.map((item, index) => (
-                                <View key={item.key} style={[styles.infoItem, index === infoItems.length - 1 && styles.noBorder]}>
-                                    <View style={styles.iconBackground}>
-                                        <MaterialCommunityIcons name={item.icon} size={22} color="#d4af37" />
-                                    </View>
-                                    <View style={styles.infoTextContainer}>
-                                        <Text style={styles.infoLabel}>{item.label}</Text>
-                                        <Text style={styles.infoValue}>{item.value}</Text>
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
+                    </View>
+
+                    {/* Save Button - Only visible when changed */}
+                    {hasChanged && (
+                        <TouchableOpacity 
+                            style={[
+                                styles.saveBtn,
+                                isSaving && styles.saveBtnDisabled
+                            ]} 
+                            onPress={handleSave}
+                            disabled={isSaving}
+                        >
+                            <Text style={[
+                                styles.saveBtnText,
+                                isSaving && styles.saveBtnTextDisabled
+                            ]}>
+                                {isSaving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                            </Text>
+                        </TouchableOpacity>
                     )}
                 </View>
 
@@ -378,31 +229,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    editAvatarButton: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        backgroundColor: '#d4af37',
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 3,
-        borderColor: '#1c1022',
-    },
     userName: {
         color: '#fff',
         fontSize: 24,
         fontFamily: 'Outfit_700Bold',
         marginBottom: 4,
-    },
-    userNameInput: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#d4af37',
-        minWidth: 150,
-        textAlign: 'center',
-        paddingBottom: 4,
     },
     userId: {
         color: 'rgba(255, 255, 255, 0.4)',
@@ -437,21 +268,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
         paddingHorizontal: 4,
-    },
-    editActionText: {
-        color: '#d4af37',
-        fontSize: 14,
-        fontFamily: 'Inter_700Bold',
-    },
-    saveActionText: {
-        color: '#4CAF50',
-        fontSize: 14,
-        fontFamily: 'Inter_700Bold',
-    },
-    cancelActionText: {
-        color: 'rgba(255, 255, 255, 0.5)',
-        fontSize: 14,
-        fontFamily: 'Inter_700Bold',
     },
     infoCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -550,131 +366,60 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 4,
     },
     /* Forms & Edit mode styles */
-    formContainer: {
-        gap: 20,
-        paddingBottom: 20,
+    relationshipSelectContainer: {
+        marginTop: 4,
     },
-    inputGroup: {
-        gap: 12,
-    },
-    inputLabel: {
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 12,
-        fontWeight: 'bold',
-        letterSpacing: 1.5,
-        textTransform: 'uppercase',
-        marginLeft: 4,
-    },
-    textInputWrapper: {
-        position: 'relative',
-        height: 56,
-    },
-    textInputBox: {
-        flex: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        justifyContent: 'center',
-    },
-    inputIcon: {
-        position: 'absolute',
-        right: 16,
-        top: 18,
-    },
-    dateText: {
-        color: 'white',
-        fontSize: 16,
-    },
-    placeholderText: {
-        color: 'rgba(255, 255, 255, 0.2)',
-    },
-    zodiacScrollContent: {
+    pillGroupCompact: {
         flexDirection: 'row',
-        gap: 12,
+        gap: 4,
         paddingRight: 16,
     },
-    zodiacCard: {
-        width: 90,
+    pillButtonSmall: {
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 12,
-        padding: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        opacity: 0.6,
-        height: 90,
+        marginRight: 6,
     },
-    zodiacCardSelected: {
+    pillButtonSmallActive: {
         backgroundColor: 'rgba(212, 175, 55, 0.15)',
         borderColor: '#d4af37',
-        borderWidth: 2,
-        opacity: 1,
-    },
-    zodiacName: {
-        fontSize: 11,
-        fontWeight: '500',
-    },
-    zodiacNameInactive: {
-        color: 'rgba(255, 255, 255, 0.7)',
-    },
-    zodiacNameActive: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    pillGroup: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
-    },
-    pillButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
     },
-    pillButtonActive: {
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-        borderColor: '#d4af37',
+    pillTextSmall: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 11,
+        fontFamily: 'Inter_500Medium',
     },
-    pillText: {
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 14,
-    },
-    pillTextActive: {
+    pillTextSmallActive: {
         color: '#d4af37',
-        fontWeight: 'bold',
+        fontFamily: 'Inter_700Bold',
     },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    saveBtn: {
+        backgroundColor: '#d4af37',
+        borderRadius: 16,
+        paddingVertical: 14,
+        alignItems: 'center',
+        marginTop: 16,
+        shadowColor: '#d4af37',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
     },
-    modalContent: {
-        backgroundColor: '#1c1022',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        paddingBottom: 20,
+    saveBtnDisabled: {
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        shadowOpacity: 0,
+        elevation: 0,
     },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-    },
-    modalDoneText: {
-        color: '#d4af37',
+    saveBtnText: {
+        color: '#1c1022',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Outfit_700Bold',
     },
-    modalCancelText: {
-        color: 'white',
-        fontSize: 16,
-    },
+    saveBtnTextDisabled: {
+        color: 'rgba(255, 255, 255, 0.2)',
+    }
 });
