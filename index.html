@@ -21,22 +21,36 @@
     <meta name="theme-color" content="#1c1022" />
 
     <style>
-      html, body, #root {
+      /* Ensure the app fills the entire screen including safe areas */
+      :root {
+        --app-height: 100%;
+      }
+      
+      html, body {
         margin: 0;
         padding: 0;
         width: 100%;
         height: 100%;
-        height: 100dvh; /* Modern dynamic viewport height */
+        height: 100dvh;
         overflow: hidden;
-        position: fixed;
         background-color: #1c1022;
-        -webkit-overflow-scrolling: touch;
+        -webkit-tap-highlight-color: transparent;
       }
+      
       #root {
         display: flex;
         flex-direction: column;
-        /* Fix for mobile browsers where 100% height is sometimes problematic */
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
         min-height: -webkit-fill-available;
+      }
+      
+      /* Web-specific fix for PWA bottom gap */
+      @supports (padding: env(safe-area-inset-bottom)) {
+        #root {
+          padding-bottom: 0; /* Let React components handle this */
+        }
       }
     </style>
   <link rel="icon" href="/falfora/favicon.ico" /></head>
@@ -45,6 +59,6 @@
       Bu uygulamayı çalıştırmak için JavaScript'i etkinleştirmeniz gerekmektedir.
     </noscript>
     <div id="root"></div>
-  <script src="/falfora/_expo/static/js/web/index-4d7b4f0852ca4387d9429d3d22e39180.js" defer></script>
+  <script src="/falfora/_expo/static/js/web/index-3e7f7204c74752206c034ef962d322e9.js" defer></script>
 </body>
 </html>
