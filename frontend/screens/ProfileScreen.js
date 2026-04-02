@@ -68,20 +68,16 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
         { key: 'gender', label: 'Cinsiyet', value: fullUser.gender || 'Belirtilmedi', icon: fullUser.gender === 'Erkek' ? 'gender-male' : 'gender-female' },
     ];
 
-    const RELATIONS = ['Bekar', 'İlişkisi Var', 'Evli', 'Karışık'];
+    const RELATIONS = ['Bekar', 'İlişkisi Var', 'Evli', 'Boşanmış', 'Karışık'];
 
     return (
         <View style={styles.container}>
             <View style={styles.profileMainContent}>
                 {/* Header/Banner Area */}
                 <View style={styles.banner}>
-                    <LinearGradient
-                        colors={['rgba(212, 175, 55, 0.2)', 'transparent']}
-                        style={StyleSheet.absoluteFill}
-                    />
                     <View style={styles.profileImageContainer}>
                         <View style={styles.avatarCircle}>
-                            <MaterialCommunityIcons name="account" size={60} color="#d4af37" />
+                            <MaterialCommunityIcons name="account" size={50} color="#d4af37" />
                         </View>
                     </View>
                     <Text style={styles.userName}>{fullUser.name || user.name}</Text>
@@ -98,7 +94,7 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                         {infoItems.map((item, index) => (
                             <View key={item.key} style={styles.infoItem}>
                                 <View style={styles.iconBackground}>
-                                    <MaterialCommunityIcons name={item.icon} size={22} color="#d4af37" />
+                                    <MaterialCommunityIcons name={item.icon} size={18} color="#d4af37" />
                                 </View>
                                 <View style={styles.infoTextContainer}>
                                     <Text style={styles.infoLabel}>{item.label}</Text>
@@ -110,32 +106,32 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                         {/* Relationship Status Dropdown Selection */}
                         <View style={[styles.infoItem, styles.noBorder]}>
                             <View style={styles.iconBackground}>
-                                <MaterialCommunityIcons name="heart-outline" size={22} color="#d4af37" />
+                                <MaterialCommunityIcons name="heart-outline" size={18} color="#d4af37" />
                             </View>
                             <View style={styles.infoTextContainer}>
                                 <Text style={styles.infoLabel}>İlişki Durumu</Text>
-                                <View style={styles.relationshipSelectContainer}>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillGroupCompact}>
-                                        {RELATIONS.map((status) => (
-                                            <TouchableOpacity
-                                                key={status}
-                                                onPress={() => setRelationshipStatus(status)}
+                                <View style={styles.pillGroupCompact}>
+                                    {RELATIONS.map((status) => (
+                                        <TouchableOpacity
+                                            key={status}
+                                            onPress={() => setRelationshipStatus(status)}
+                                            style={[
+                                                styles.pillButtonSmall,
+                                                relationshipStatus === status && styles.pillButtonSmallActive,
+                                            ]}
+                                        >
+                                            <Text
+                                                numberOfLines={1}
+                                                adjustsFontSizeToFit
                                                 style={[
-                                                    styles.pillButtonSmall,
-                                                    relationshipStatus === status && styles.pillButtonSmallActive,
+                                                    styles.pillTextSmall,
+                                                    relationshipStatus === status && styles.pillTextSmallActive,
                                                 ]}
                                             >
-                                                <Text
-                                                    style={[
-                                                        styles.pillTextSmall,
-                                                        relationshipStatus === status && styles.pillTextSmallActive,
-                                                    ]}
-                                                >
-                                                    {status}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
+                                                {status}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
                                 </View>
                             </View>
                         </View>
@@ -163,13 +159,13 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
 
                 {/* Actions Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Hesap</Text>
+                    <Text style={styles.sectionTitleCompact}>Hesap</Text>
                     <TouchableOpacity style={styles.actionButton} onPress={onLogout}>
-                        <View style={[styles.iconBackground, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
-                            <MaterialCommunityIcons name="logout" size={22} color="#FF453A" />
+                        <View style={[styles.iconBackground, { backgroundColor: 'rgba(255, 69, 58, 0.1)', width: 34, height: 34, borderRadius: 10 }]}>
+                            <MaterialCommunityIcons name="logout" size={18} color="#FF453A" />
                         </View>
                         <Text style={[styles.actionText, { color: '#FF453A' }]}>Çıkış Yap</Text>
-                        <MaterialIcons name="chevron-right" size={24} color="rgba(255, 255, 255, 0.3)" />
+                        <MaterialIcons name="chevron-right" size={20} color="rgba(255, 255, 255, 0.3)" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -205,24 +201,24 @@ const styles = StyleSheet.create({
     },
     profileMainContent: {
         flex: 1,
-        justifyContent: 'space-evenly', 
-        paddingBottom: 70, 
+        justifyContent: 'space-evenly',
+        paddingBottom: 70, // Buffer for nav bar
     },
     banner: {
         alignItems: 'center',
-        paddingTop: 10,
-        paddingBottom: 20,
+        paddingTop: 4,
+        paddingBottom: 10,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     },
     profileImageContainer: {
         position: 'relative',
-        marginBottom: 16,
+        marginBottom: 8,
     },
     avatarCircle: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 70,
+        height: 70,
+        borderRadius: 35,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 2,
         borderColor: 'rgba(212, 175, 55, 0.3)',
@@ -231,32 +227,41 @@ const styles = StyleSheet.create({
     },
     userName: {
         color: '#fff',
-        fontSize: 24,
+        fontSize: 20,
         fontFamily: 'Outfit_700Bold',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     userId: {
         color: 'rgba(255, 255, 255, 0.4)',
-        fontSize: 12,
+        fontSize: 10,
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
     section: {
-        paddingHorizontal: 24,
-        marginTop: 10,
+        paddingHorizontal: 20,
+        marginTop: 4,
     },
     sectionTitle: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 13,
+        fontSize: 11,
         fontFamily: 'Inter_700Bold',
         textTransform: 'uppercase',
         letterSpacing: 1.5,
-        marginBottom: 12,
+        marginBottom: 8,
+        marginLeft: 4,
+    },
+    sectionTitleCompact: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 11,
+        fontFamily: 'Inter_700Bold',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginBottom: 6,
         marginLeft: 4,
     },
     sectionTitleNoMargin: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 13,
+        fontSize: 11,
         fontFamily: 'Inter_700Bold',
         textTransform: 'uppercase',
         letterSpacing: 1.5,
@@ -266,20 +271,20 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 8,
         paddingHorizontal: 4,
     },
     infoCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderRadius: 20,
-        padding: 8,
+        borderRadius: 16,
+        padding: 4,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     infoItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
+        padding: 8,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     },
@@ -287,13 +292,13 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
     },
     iconBackground: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: 32,
+        height: 32,
+        borderRadius: 10,
         backgroundColor: 'rgba(212, 175, 55, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 16,
+        marginRight: 12,
     },
     infoTextContainer: {
         flex: 1,
@@ -371,17 +376,21 @@ const styles = StyleSheet.create({
     },
     pillGroupCompact: {
         flexDirection: 'row',
-        gap: 4,
-        paddingRight: 16,
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 10,
     },
     pillButtonSmall: {
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
+        flexGrow: 1,
+        minWidth: '30%',
+        paddingVertical: 10,
+        paddingHorizontal: 8,
+        borderRadius: 12,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        marginRight: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     pillButtonSmallActive: {
         backgroundColor: 'rgba(212, 175, 55, 0.15)',
@@ -390,7 +399,7 @@ const styles = StyleSheet.create({
     },
     pillTextSmall: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 11,
+        fontSize: 12,
         fontFamily: 'Inter_500Medium',
     },
     pillTextSmallActive: {
@@ -399,15 +408,15 @@ const styles = StyleSheet.create({
     },
     saveBtn: {
         backgroundColor: '#d4af37',
-        borderRadius: 16,
-        paddingVertical: 14,
+        borderRadius: 12,
+        paddingVertical: 10,
         alignItems: 'center',
-        marginTop: 16,
+        marginTop: 8,
         shadowColor: '#d4af37',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
     },
     saveBtnDisabled: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',

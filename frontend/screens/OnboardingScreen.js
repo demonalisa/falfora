@@ -294,13 +294,17 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>İlişki Durumu</Text>
                         <View style={styles.pillGroup}>
-                            {['Bekar', 'İlişkisi Var', 'Evli', 'Karışık'].map((status) => (
+                            {['Bekar', 'İlişkisi Var', 'Evli', 'Boşanmış', 'Karışık'].map((status) => (
                                 <TouchableOpacity
                                     key={status}
                                     onPress={() => setRelationshipStatus(status)}
                                     style={[styles.pillButton, relationshipStatus === status && styles.pillButtonActive]}
                                 >
-                                    <Text style={[styles.pillText, relationshipStatus === status && styles.pillTextActive]}>
+                                    <Text 
+                                        numberOfLines={1}
+                                        adjustsFontSizeToFit
+                                        style={[styles.pillText, relationshipStatus === status && styles.pillTextActive]}
+                                    >
                                         {status}
                                     </Text>
                                 </TouchableOpacity>
@@ -477,12 +481,16 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     pillButton: {
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 20,
+        flexGrow: 1,
+        minWidth: '30%',
+        paddingVertical: 10,
+        paddingHorizontal: 8,
+        borderRadius: 12,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     pillButtonActive: {
         backgroundColor: 'rgba(212, 175, 55, 0.15)',
