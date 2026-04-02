@@ -17,6 +17,7 @@ import WelcomeScreen from './screens/WelcomeScreen';
 import ReadingScreen from './screens/ReadingScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import HistoryScreen from './screens/HistoryScreen';
+import CardSelectionScreen from './screens/CardSelectionScreen';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -30,9 +31,10 @@ export default function App() {
     Outfit_700Bold,
   });
 
-  const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home', 'reading'
+  const [currentScreen, setCurrentScreen] = useState('login'); // 'login', 'onboarding', 'welcome', 'home', 'selection', 'reading'
   const [sessionUser, setSessionUser] = useState(null); // { id: string, name: string }
   const [selectedFortuneType, setSelectedFortuneType] = useState(null);
+  const [manualSelectedCards, setManualSelectedCards] = useState(null);
   const [selectedReading, setSelectedReading] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
 
@@ -157,7 +159,18 @@ export default function App() {
                   onNavigate={handleNavigate}
                   onReadFortune={(type) => {
                     setSelectedFortuneType(type);
+                    setManualSelectedCards(null);
                     setSelectedReading(null);
+                    setCurrentScreen('selection');
+                  }}
+                />
+              )}
+              {currentScreen === 'selection' && (
+                <CardSelectionScreen
+                  selectedType={selectedFortuneType}
+                  onBack={() => setCurrentScreen('home')}
+                  onReadFortune={(type, cards) => {
+                    setManualSelectedCards(cards);
                     setCurrentScreen('reading');
                   }}
                 />
@@ -168,6 +181,7 @@ export default function App() {
                   userInfo={userInfo}
                   accessToken={accessToken}
                   selectedType={selectedFortuneType}
+                  manualSelectedCards={manualSelectedCards}
                   existingReading={selectedReading}
                   onBack={() => setCurrentScreen(selectedReading ? 'history' : 'home')}
                   onNavigate={handleNavigate}

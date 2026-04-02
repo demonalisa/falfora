@@ -60,8 +60,10 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
     }
 
     try {
-        // Kartları otomatik seçiyoruz
-        const selectedCards = pickRandomCards(cardCount);
+        // Kartları otomatik seçiyoruz (Eğer frontend manuel gönderdiyse oradan alıyoruz)
+        const { selectedCards: manualCards } = req.body;
+        const selectedCards = manualCards && Array.isArray(manualCards) ? manualCards : pickRandomCards(cardCount);
+        
         const isLoveSpread = spreadName === "Aşk Açılımı";
         const isDailySpread = spreadName === "Günlük Bakış";
         const isGalacticSpread = spreadName === "Galaktik Açılım";

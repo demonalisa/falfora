@@ -15,7 +15,7 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-export default function ReadingScreen({ user, userInfo, accessToken, selectedType, existingReading, onBack, onNavigate }) {
+export default function ReadingScreen({ user, userInfo, accessToken, selectedType, manualSelectedCards, existingReading, onBack, onNavigate }) {
     const [loading, setLoading] = useState(!existingReading);
     const [readingData, setReadingData] = useState(existingReading || null);
     const [error, setError] = useState(null);
@@ -206,6 +206,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 },
                 body: JSON.stringify({
                     cardCount,
+                    selectedCards: manualSelectedCards,
                     spreadName: fortuneNames[selectedType] || 'Tarot Falı',
                     userInfo: {
                         name: userInfo?.name || user?.name,

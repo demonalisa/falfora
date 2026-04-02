@@ -141,12 +141,12 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         end={{ x: 1, y: 0 }}
                     >
                         <Text style={[styles.readButtonText, !selectedType && styles.readButtonTextDisabled]}>
-                            Falımı Yorumla
+                            Kart Seç
                         </Text>
-                        <MaterialCommunityIcons
-                            name="auto-fix"
-                            size={22}
-                            color={selectedType ? '#1c1022' : 'rgba(255, 255, 255, 0.3)'}
+                        <MaterialCommunityIcons 
+                            name="cards-playing" 
+                            size={20} 
+                            color={selectedType ? '#1c1022' : 'rgba(255, 255, 255, 0.3)'} 
                         />
                     </LinearGradient>
                 </TouchableOpacity>
