@@ -87,9 +87,48 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
 
         const cardIndex = index - 1;
         if (readingData?.cards && cardIndex >= 0 && cardIndex < readingData.cards.length) {
-            return `${cardIndex + 1}. Kart: ${sanitizeCardName(readingData.cards[cardIndex])}`;
+            let cardPrefix = `${cardIndex + 1}. Kart: `;
+            
+            const themes = {
+                'single_1': [
+                    'Günün Mesajı'
+                ],
+                'love_7': [
+                    'Senin derin duyguların',
+                    'Onun sana karşı hisleri',
+                    'Mevcut enerji ve uyum',
+                    'İlişkiden beklentin',
+                    'Onun ilişkiden beklentisi',
+                    'Yolunuzdaki engel/zorluk',
+                    'Potansiyel sonuç'
+                ],
+                '3_cards': [
+                    'Geçmiş / Kökler',
+                    'Bugün / Mevcut Durum',
+                    'Gelecek / Potansiyel'
+                ],
+                '10_cards': [
+                    'Mevcut Durum',
+                    'Engel / Zorluk',
+                    'Amaç / İdeal',
+                    'Bilinçaltı / Temel',
+                    'Geçmiş',
+                    'Gelecek',
+                    'Kendi İç Dünyan',
+                    'Dış Etkiler',
+                    'Umutlar ve Korkular',
+                    'Kozmik Sonuç'
+                ]
+            };
+
+            const currentThemes = themes[selectedType];
+            if (currentThemes && currentThemes[cardIndex]) {
+                cardPrefix = `${currentThemes[cardIndex]} - `;
+            }
+
+            return `${cardPrefix}${sanitizeCardName(readingData.cards[cardIndex])}`;
         }
-        return "Yorum"; // Fallback
+        return "Yorum"; 
     };
 
     const handleNext = () => {
@@ -139,8 +178,10 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
     };
 
     const fortuneNames = {
+        'single_1': 'Günün Tavsiyesi',
         '3_cards': 'Günlük Bakış',
-        '10_cards': 'Galaktik Açılım'
+        '10_cards': 'Galaktik Açılım',
+        'love_7': 'Aşk Açılımı'
     };
 
     useEffect(() => {
@@ -154,7 +195,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             setLoading(true);
             setError(null);
 
-            const cardCount = selectedType === '10_cards' ? 10 : 3;
+            const counts = { 'single_1': 1, '3_cards': 3, '10_cards': 10, 'love_7': 7 };
+            const cardCount = counts[selectedType] || 3;
 
             const response = await fetch(`${API_URL}/api/tarot/reading`, {
                 method: 'POST',

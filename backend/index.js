@@ -62,7 +62,10 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
     try {
         // Kartları otomatik seçiyoruz
         const selectedCards = pickRandomCards(cardCount);
-
+        const isLoveSpread = spreadName === "Aşk Açılımı";
+        const isDailySpread = spreadName === "Günlük Bakış";
+        const isGalacticSpread = spreadName === "Galaktik Açılım";
+        const isSingleSpread = spreadName === "Günün Tavsiyesi";
         const readingType = `${cardCount} kartlık (${spreadName}) Tarot okuması`;
 
         const prompt = `
@@ -79,11 +82,43 @@ app.post('/api/tarot/reading', checkJwt, async (req, res) => {
       Seçilen Kartlar:
       ${selectedCards.join('\n- ')}
 
+      ${isLoveSpread ? `
+      AŞK AÇILIMI TEMALARI (7 KART):
+      1. KART: Senin (Kullanıcının) derin duyguları ve mevcut ruh halin.
+      2. KART: Karşı tarafın (Partnerin/Adayın) sana karşı gerçek hisleri.
+      3. KART: İlişkideki mevcut enerji ve aranızdaki kozmik uyum.
+      4. KART: Senin bu ilişkiden beklentin, umudun veya gizli isteğin.
+      5. KART: Karşı tarafın bu ilişkiden beklentisi ve vizyonu.
+      6. KART: Yolunuza çıkan bir engel, çözülmesi gereken bir düğüm veya dış bir zorluk.
+      7. KART: İlişkinin yakın gelecekteki potansiyeli ve varacağı kozmik sonuç.
+      ` : isDailySpread ? `
+      GÜNLÜK BAKIŞ TEMALARI (3 KART):
+      1. KART: Geçmişin tortuları ve bugününü etkileyen eski enerjiler.
+      2. KART: Bugünün ana enerjisi, şu anki mevcut durumun.
+      3. KART: Yakın gelecekte seni bekleyen potansiyel ve kozmik mesaj.
+      ` : isGalacticSpread ? `
+      GALAKTİK AÇILIM TEMALARI (10 KART):
+      1. KART: Mevcut Durumun ve merkezin.
+      2. KART: Yoluna çıkan zorluk ve engel.
+      3. KART: Amaçların, dileklerin ve en iyi ihtimal.
+      4. KART: Bilinçaltın, temel korkuların ve köklerin.
+      5. KART: Geçmişin enerjisi, arkanda bıraktıkların.
+      6. KART: Yakın gelecekte karşılaşacağın etkiler.
+      7. KART: Kendi iç dünyan ve bakış açın.
+      8. KART: Dış dünyadaki insanların seni nasıl gördüğü ve çevre etkileri.
+      9. KART: Umutların, beklentilerin veya endişelerin.
+      10. KART: Kozmik sonuç, varacağın son nokta.
+      ` : isSingleSpread ? `
+      GÜNÜN TAVSİYESİ TEMASI (1 KART):
+      1. KART: Bugün alman gereken ana mesaj, genel tavsiye ve günün rehberlik enerjisi.
+      ` : ''}
+
       ÖNEMLİ FORMAT VE UZUNLUK KURALI:
       Yazacağın fal metni TAM OLARAK ${cardCount + 3} paragraf uzunluğunda olmalıdır.
       Kurgun şu sırayla ilerlemelidir:
       1. Paragraf: Mistik ve etkileyici bir giriş yazısı.
       Orta Paragraflar: Seçilen her bir kart için, kartın ismini veya numarasını ASLA zikretmeden, tamamen o kartın manasını anlatan 1 paragraf (Toplam ${cardCount} paragraf).
+      NOT: Orta paragraflar yukarıdaki açılım tipine göre tanımlanan temaları (Sen, O, İlişki, Geçmiş, Bugün, Gelecek, Engel vb.) sırasıyla derinlemesine işlemelidir.
       Sondan Bir Önceki Paragraf: Tüm kartların anlattıklarına yönelik genel bir özet.
       Son Paragraf: Güzel, bilgece bir kapanış ve tavsiye yazısı.
 

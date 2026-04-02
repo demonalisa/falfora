@@ -17,6 +17,33 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
 
                 {/* Fortune Options */}
                 <View style={styles.cardContainer}>
+                    {/* Single Card Advice Option */}
+                    <TouchableOpacity
+                        style={[styles.optionCard, selectedType === 'single_1' && styles.selectedCard]}
+                        onPress={() => setSelectedType('single_1')}
+                        activeOpacity={0.8}
+                    >
+                        <View style={styles.cardIconWrapper}>
+                            <MaterialCommunityIcons
+                                name="star-shooting-outline"
+                                size={32}
+                                color={selectedType === 'single_1' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
+                            />
+                        </View>
+                        <View style={styles.cardContent}>
+                            <Text style={styles.cardTitle}>Günün Tavsiyesi</Text>
+                            <Text style={styles.cardDesc}>Evrenin size bugün için verdiği özel mesaj ve rehberlik.</Text>
+                        </View>
+                        <View style={styles.cardBadge}>
+                            <Text style={styles.badgeText}>1 KART</Text>
+                        </View>
+                        {selectedType === 'single_1' && (
+                            <View style={styles.checkIcon}>
+                                <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
                     {/* 3 Cards Option */}
                     <TouchableOpacity
                         style={[styles.optionCard, selectedType === '3_cards' && styles.selectedCard]}
@@ -65,6 +92,33 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                             <Text style={styles.badgeText}>10 KART</Text>
                         </View>
                         {selectedType === '10_cards' && (
+                            <View style={styles.checkIcon}>
+                                <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Love Spread Option */}
+                    <TouchableOpacity
+                        style={[styles.optionCard, selectedType === 'love_7' && styles.selectedCard]}
+                        onPress={() => setSelectedType('love_7')}
+                        activeOpacity={0.8}
+                    >
+                        <View style={styles.cardIconWrapper}>
+                            <MaterialCommunityIcons
+                                name="heart-multiple-outline"
+                                size={32}
+                                color={selectedType === 'love_7' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
+                            />
+                        </View>
+                        <View style={styles.cardContent}>
+                            <Text style={styles.cardTitle}>Aşk Açılımı</Text>
+                            <Text style={styles.cardDesc}>Duygularınız ve ilişkiniz üzerine derin bir bakış.</Text>
+                        </View>
+                        <View style={styles.cardBadge}>
+                            <Text style={styles.badgeText}>7 KART</Text>
+                        </View>
+                        {selectedType === 'love_7' && (
                             <View style={styles.checkIcon}>
                                 <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
                             </View>
@@ -127,40 +181,40 @@ const styles = StyleSheet.create({
     mainContent: {
         flex: 1,
         paddingHorizontal: 24,
-        paddingTop: Platform.OS === 'web' ? 20 : 0,
-        paddingBottom: 150,
-        justifyContent: 'space-around', // Spread content to fit screen height
+        paddingTop: Platform.OS === 'web' ? 20 : 10,
+        paddingBottom: 130,
+        justifyContent: 'center', // Centered distribution
     },
     titleSection: {
-        marginTop: 10,
-        marginBottom: 32,
+        marginTop: 0,
+        marginBottom: 16,
     },
     mainTitle: {
         color: '#fff',
-        fontSize: Platform.OS === 'web' ? 44 : 32,
+        fontSize: Platform.OS === 'web' ? 36 : 28,
         fontFamily: 'Outfit_700Bold',
-        lineHeight: Platform.OS === 'web' ? 52 : 40,
-        marginBottom: 12,
+        lineHeight: Platform.OS === 'web' ? 44 : 34,
+        marginBottom: 8,
     },
     accentText: {
         color: '#d4af37',
     },
     subtitle: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Inter_400Regular',
-        lineHeight: 24,
+        lineHeight: 20,
     },
     cardContainer: {
-        gap: 16, // Slightly reduced gap
+        gap: 10,
     },
     optionCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderRadius: 20, // Smaller radius
-        padding: 16, // Reduced padding
+        borderRadius: 16,
+        padding: 12,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        flexDirection: 'row', // Horizontal layout for smaller height
+        flexDirection: 'row',
         alignItems: 'center',
         position: 'relative',
         overflow: 'hidden',
@@ -171,28 +225,28 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     cardIconWrapper: {
-        width: 48, // Smaller icon wrapper
-        height: 48,
-        borderRadius: 24,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 16, // Gap between icon and text
+        marginRight: 12,
     },
     cardContent: {
         flex: 1,
     },
     cardTitle: {
         color: '#fff',
-        fontSize: 18, // Smaller title
+        fontSize: 16,
         fontFamily: 'Outfit_600SemiBold',
-        marginBottom: 2,
+        marginBottom: 0,
     },
     cardDesc: {
         color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 12, // Smaller description
+        fontSize: 11,
         fontFamily: 'Inter_400Regular',
-        lineHeight: 16,
+        lineHeight: 14,
     },
     cardBadge: {
         position: 'absolute',
@@ -222,8 +276,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     readButton: {
-        height: 56, // Slightly smaller
-        borderRadius: 16,
+        height: 48,
+        borderRadius: 12,
         overflow: 'hidden',
         cursor: Platform.OS === 'web' ? 'pointer' : 'auto',
     },
