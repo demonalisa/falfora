@@ -182,6 +182,11 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                     <Text style={styles.navText}>Ana Sayfa</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('explore')}>
+                    <MaterialCommunityIcons name="magnify" size={26} color="rgba(255, 255, 255, 0.4)" />
+                    <Text style={styles.navText}>Keşfet</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.navItemActive}>
                     <View style={styles.activeIndicator} />
                     <MaterialCommunityIcons name="account" size={26} color="#d4af37" />

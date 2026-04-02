@@ -165,6 +165,11 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                     <Text style={styles.navTextActive}>Ana Sayfa</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('explore')}>
+                    <MaterialCommunityIcons name="magnify" size={26} color="rgba(255, 255, 255, 0.4)" />
+                    <Text style={styles.navText}>Keşfet</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.navItem} onPress={() => onNavigate('profile')}>
                     <MaterialCommunityIcons name="account-outline" size={26} color="rgba(255, 255, 255, 0.4)" />
                     <Text style={styles.navText}>Profil</Text>

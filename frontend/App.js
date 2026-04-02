@@ -18,6 +18,7 @@ import ReadingScreen from './screens/ReadingScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import CardSelectionScreen from './screens/CardSelectionScreen';
+import ExploreScreen from './screens/ExploreScreen';
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -193,6 +194,11 @@ export default function App() {
                   userInfo={userInfo}
                   setUserInfo={setUserInfo}
                   onLogout={handleLogout}
+                  onNavigate={handleNavigate}
+                />
+              )}
+              {currentScreen === 'explore' && (
+                <ExploreScreen
                   onNavigate={handleNavigate}
                 />
               )}
