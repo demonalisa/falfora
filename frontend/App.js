@@ -77,9 +77,9 @@ export default function App() {
 
   const checkUserAndNavigate = async (user) => {
     setSessionUser(user);
-    const existingUser = await DatabaseService.getUser(user.id);
-    if (existingUser) {
-      setUserInfo(existingUser);
+    // Artık profilin tamamlanıp tamamlanmadığını user nesnesindeki isProfileComplete alanından anlıyoruz
+    if (user.isProfileComplete) {
+      setUserInfo(user);
       setCurrentScreen('home');
     } else {
       setCurrentScreen('onboarding');
@@ -93,7 +93,8 @@ export default function App() {
 
   const handleOnboardingComplete = async (userData) => {
     if (sessionUser) {
-      const savedUser = await DatabaseService.saveUser(sessionUser.id, userData);
+      // accessToken'ı gönderiyoruz ki bilgiler MongoDB'ye de kaydedilsin
+      const savedUser = await DatabaseService.saveUser(sessionUser.id, userData, accessToken);
       setUserInfo(savedUser);
       setCurrentScreen('welcome');
     }
@@ -202,6 +203,7 @@ export default function App() {
                   user={sessionUser}
                   userInfo={userInfo}
                   setUserInfo={setUserInfo}
+                  accessToken={accessToken}
                   onLogout={handleLogout}
                   onNavigate={handleNavigate}
                 />

@@ -70,7 +70,17 @@ export const AuthService = {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Sync failed');
 
-            const user = { id: data._id, name: data.username, email: data.email, picture: auth0User.picture };
+            const user = { 
+                id: data._id, 
+                name: data.username, 
+                email: data.email, 
+                picture: auth0User.picture,
+                birthDate: data.birthDate,
+                zodiac: data.zodiac,
+                gender: data.gender,
+                relationship: data.relationship,
+                isProfileComplete: data.isProfileComplete
+            };
             await saveLocalSession(user, data.token);
             return { user, accessToken: data.token };
         } catch (error) {

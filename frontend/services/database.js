@@ -20,16 +20,34 @@ export const DatabaseService = {
         }
     },
 
-    saveUser: async (userId, data) => {
+    saveUser: async (userId, data, token) => {
         try {
+            // Local update
             const existingUser = await DatabaseService.getUser(userId) || {};
             const updatedUser = {
                 ...existingUser,
                 ...data,
                 id: userId,
                 updatedAt: new Date().toISOString(),
+                isProfileComplete: true
             };
             await AsyncStorage.setItem(`${KEYS.USER}_${userId}`, JSON.stringify(updatedUser));
+
+            // Server update (Persist to MongoDB)
+            if (token) {
+                const response = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    console.warn('[DatabaseService] User update on server failed, but local copy saved.');
+                }
+            }
+
             return updatedUser;
         } catch (error) {
             console.error('[DatabaseService] Error saving user:', error);

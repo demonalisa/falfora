@@ -58,8 +58,45 @@ const googleLogin = asyncHandler(async (req, res) => {
         username: user.username,
         email: user.email,
         sub: user.sub,
+        birthDate: user.birthDate,
+        zodiac: user.zodiac,
+        gender: user.gender,
+        relationship: user.relationship,
+        isProfileComplete: user.isProfileComplete,
         token: generateToken(user._id)
     });
 });
 
-module.exports = { getUserProfile, googleLogin };
+// @desc Update user profile
+// @route PUT /api/auth/profile
+// @access Private
+const updateProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        user.username = req.body.username || user.username;
+        user.birthDate = req.body.birthDate || user.birthDate;
+        user.zodiac = req.body.zodiac || user.zodiac;
+        user.gender = req.body.gender || user.gender;
+        user.relationship = req.body.relationship || user.relationship;
+        user.isProfileComplete = true; // Onboarding tamamlandıysa true'ya set et
+
+        const updatedUser = await user.save();
+        res.json({
+            _id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            birthDate: updatedUser.birthDate,
+            zodiac: updatedUser.zodiac,
+            gender: updatedUser.gender,
+            relationship: updatedUser.relationship,
+            isProfileComplete: updatedUser.isProfileComplete,
+            token: generateToken(updatedUser._id)
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
+module.exports = { getUserProfile, googleLogin, updateProfile };

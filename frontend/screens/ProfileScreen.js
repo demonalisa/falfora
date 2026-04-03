@@ -19,7 +19,7 @@ const ZODIAC_SIGNS = [
     { name: 'Balık', icon: 'zodiac-pisces' },
 ];
 
-export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, onNavigate }) {
+export default function ProfileScreen({ user, userInfo, setUserInfo, accessToken, onLogout, onNavigate }) {
     const fullUser = userInfo || {};
     const webDateInputRef = useRef(null);
 
@@ -36,7 +36,8 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
             const editData = {
                 relationship: relationshipStatus
             };
-            const updatedUser = await DatabaseService.saveUser(user.id, editData);
+            // accessToken'ı göndererek MongoDB'yi güncelliyoruz
+            const updatedUser = await DatabaseService.saveUser(user.id, editData, accessToken);
             if (updatedUser) {
                 setUserInfo(updatedUser);
             }
