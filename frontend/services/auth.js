@@ -20,8 +20,10 @@ let spaClient = null;
 const getSpaClient = async () => {
     if (spaClient) return spaClient;
 
-    // Original web configuration (with explicit redirect_uri to avoid mismatch)
-    const redirectUri = Platform.OS === 'web' && typeof window !== 'undefined' && window.location ? window.location.origin + (window.location.pathname.startsWith('/falfora') ? '/falfora/' : '/') : '';
+    // URL'deki query string'leri temizleyerek ham yolu (path) alır ve her zaman '/' ile bitmesini sağlarız
+    const redirectUri = Platform.OS === 'web' && typeof window !== 'undefined'
+        ? (window.location.origin + window.location.pathname).split('?')[0].replace(/\/$/, '') + '/'
+        : '';
 
     // Lazy-require web client to prevent native crashes
     const { createAuth0Client } = require('@auth0/auth0-spa-js');
