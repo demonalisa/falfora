@@ -113,7 +113,10 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                 <Text style={styles.onboardingHeaderTitle}>Kullanıcı Bilgileri</Text>
             </View>
 
-            <View style={styles.mainContentFit}>
+            <ScrollView 
+                showsVerticalScrollIndicator={false} 
+                contentContainerStyle={styles.scrollContent}
+            >
                 {/* Headline */}
                 <View style={styles.onboardingHeadline}>
                     <Text style={styles.onboardingTitle}>Göksel Uyum</Text>
@@ -311,16 +314,16 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                             ))}
                         </View>
                     </View>
-                </View>
-            </View>
 
-            {/* Footer Button */}
-            <View style={styles.onboardingFooter}>
-                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                    <Text style={styles.continueButtonText}>Kozmos'a Devam Et</Text>
-                    <MaterialCommunityIcons name="auto-fix" size={22} color="#1c1022" />
-                </TouchableOpacity>
-            </View>
+                    {/* Submit Button placed inside ScrollView at the end */}
+                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                        <Text style={styles.continueButtonText}>Kozmos'a Devam Et</Text>
+                        <MaterialCommunityIcons name="auto-fix" size={22} color="#1c1022" />
+                    </TouchableOpacity>
+
+                    <View style={{ height: 40 }} />
+                </View>
+            </ScrollView>
         </View>
     );
 }
@@ -343,14 +346,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontFamily: 'Outfit_600SemiBold',
     },
-    mainContentFit: {
-        flex: 1,
+    scrollContent: {
+        flexGrow: 1,
         paddingHorizontal: 24,
-        justifyContent: 'space-evenly', // İçeriği ekrana dengeli dağıtır
-        paddingBottom: 20,
+        paddingTop: 10,
+        paddingBottom: 40,
     },
     onboardingHeadline: {
         alignItems: 'center',
+        marginBottom: 30,
     },
     onboardingTitle: {
         color: 'white',
@@ -367,10 +371,10 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
     formContainer: {
-        gap: 24,
+        gap: 30,
     },
     inputGroup: {
-        gap: 10,
+        gap: 12,
     },
     inputLabel: {
         color: 'rgba(255, 255, 255, 0.8)',
@@ -477,14 +481,13 @@ const styles = StyleSheet.create({
     pillGroup: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 10,
     },
     pillButton: {
-        flexGrow: 1,
-        minWidth: '30%',
-        paddingVertical: 10,
-        paddingHorizontal: 8,
-        borderRadius: 12,
+        minWidth: '28%',
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 14,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -523,18 +526,16 @@ const styles = StyleSheet.create({
         color: '#d4af37',
         fontWeight: 'bold',
     },
-    onboardingFooter: {
-        padding: 24,
-        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    },
     continueButton: {
         backgroundColor: '#d4af37',
-        height: 56,
+        height: 58,
         borderRadius: 16,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
+        marginTop: 10,
+        boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)',
     },
     continueButtonText: {
         color: '#1c1022',
