@@ -150,7 +150,7 @@ const createReading = asyncHandler(async (req, res) => {
     await Stats.findOneAndUpdate(
         { date: today, type: 'tarot' },
         { $inc: { count: 1 } },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
     );
 
     res.status(201).json({
