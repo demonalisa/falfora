@@ -2,24 +2,29 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AuthService } from '../services/auth';
 
-export default function LoginScreen({ onLogin, onDevLogin }) {
+export default function LoginScreen({ onLoginSuccess, onDevLogin }) {
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleLogin = async () => {
+    const handleGoogleLogin = async () => {
         setLoading(true);
+        setError('');
         try {
-            await onLogin();
-        } catch (error) {
-            console.log('Login error:', error);
-        } finally {
+            const result = await AuthService.loginWithAuth0();
+            if (result && result.user) {
+                onLoginSuccess(result.user, result.accessToken);
+            }
+        } catch (err) {
+            console.error('Google login error:', err);
+            setError('Google girişi şu an gerçekleştirilemiyor.');
             setLoading(false);
         }
     };
 
     return (
-        <View style={styles.contentWrapper}>
-            {/* Hero Image / Crystal Ball */}
+        <View style={styles.container}>
             <View style={styles.heroContainer}>
                 <View style={styles.crystalBallWrapper}>
                     <Image
@@ -40,14 +45,16 @@ export default function LoginScreen({ onLogin, onDevLogin }) {
                     Kaderinizi <Text style={styles.accentText}>Keşfedin</Text>
                 </Text>
                 <Text style={styles.subtitle}>
-                    Ruhunuzu kozmik enerjiye bağlayın ve yıldızların sizin için ne yazdığını ortaya çıkarın.
+                    Ruhunuzu kozmik enerjiye bağlayın ve yıldızların sizin için ne yazdığını keşfedin.
                 </Text>
             </View>
 
             <View style={styles.buttonGroup}>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
                 <TouchableOpacity
-                    style={styles.loginButton}
-                    onPress={handleLogin}
+                    style={[styles.googleButton, loading && { pointerEvents: 'none' }]}
+                    onPress={handleGoogleLogin}
                     disabled={loading}
                     activeOpacity={0.8}
                 >
@@ -61,8 +68,8 @@ export default function LoginScreen({ onLogin, onDevLogin }) {
                             <ActivityIndicator size="small" color="#1c1022" />
                         ) : (
                             <>
-                               <MaterialCommunityIcons name="login" size={22} color="#1c1022" />
-                                <Text style={styles.loginButtonText}>Evrene Giriş Yap</Text>
+                                <MaterialCommunityIcons name="google" size={24} color="#1c1022" />
+                                <Text style={styles.loginButtonText}>Google ile Devam Et</Text>
                             </>
                         )}
                     </LinearGradient>
@@ -71,10 +78,10 @@ export default function LoginScreen({ onLogin, onDevLogin }) {
                 {__DEV__ && (
                     <TouchableOpacity 
                         style={styles.devSkipButton} 
-                        onPress={onDevLogin}
+                        onPress={() => onDevLogin()}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.devSkipText}>Geliştirici Girişi (Auth0 Atla)</Text>
+                        <Text style={styles.devSkipText}>Geliştirici Girişi (Hızlı Test)</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -82,39 +89,31 @@ export default function LoginScreen({ onLogin, onDevLogin }) {
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
                     Evrene girerek şunları kabul etmiş olursunuz:{'\n'}
-                    <Text style={styles.linkText}>Yüceliş Şartları</Text> ve <Text style={styles.linkText}>Ruhsal Gizlilik Politikası</Text>.
+                    <Text style={styles.linkText}>Yüceliş Şartları</Text> ve <Text style={styles.linkText}>Gizlilik Politikası</Text>.
                 </Text>
             </View>
         </View>
     );
 }
 
-
 const styles = StyleSheet.create({
-    contentWrapper: {
+    container: {
         flex: 1,
-        justifyContent: 'space-between',
-        paddingBottom: 20,
+        justifyContent: 'center',
+        paddingTop: 40,
     },
     heroContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
-        marginVertical: 20,
-        paddingHorizontal: 24,
+        marginBottom: 40,
     },
     crystalBallWrapper: {
-        width: 280,
-        height: 280,
-        borderRadius: 140,
+        width: 260,
+        height: 260,
+        borderRadius: 130,
         overflow: 'hidden',
         borderWidth: 2,
         borderColor: 'rgba(212, 175, 55, 0.2)',
         backgroundColor: 'rgba(164, 19, 236, 0.05)',
-        shadowColor: '#a413ec',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
-        elevation: 10,
     },
     crystalBallImage: {
         width: '100%',
@@ -127,41 +126,38 @@ const styles = StyleSheet.create({
     textContainer: {
         paddingHorizontal: 32,
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: 50,
     },
     mainTitle: {
         color: '#fff',
-        fontSize: Platform.OS === 'web' ? 48 : 36,
+        fontSize: Platform.OS === 'web' ? 42 : 34,
         fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
-        lineHeight: Platform.OS === 'web' ? 56 : 44,
-        marginBottom: 10,
+        marginBottom: 12,
     },
     accentText: {
         color: '#d4af37',
     },
     subtitle: {
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: 'rgba(255, 255, 255, 0.6)',
         fontSize: 16,
         fontFamily: 'Inter_400Regular',
         textAlign: 'center',
         lineHeight: 24,
-        paddingHorizontal: 10,
     },
     buttonGroup: {
-        paddingHorizontal: 24,
-        gap: 12,
-        marginBottom: 32,
-        width: '100%',
-        maxWidth: 480,
-        alignSelf: 'center',
+        paddingHorizontal: 32,
         alignItems: 'center',
-    },
-    loginButton: {
         width: '100%',
-        height: 56,
-        borderRadius: 16,
+        maxWidth: 400,
+        alignSelf: 'center',
+    },
+    googleButton: {
+        width: '100%',
+        height: 58,
+        borderRadius: 18,
         overflow: 'hidden',
+        boxShadow: '0 4px 8px rgba(212, 175, 55, 0.3)',
     },
     loginGradient: {
         flex: 1,
@@ -175,15 +171,15 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontFamily: 'Outfit_700Bold',
     },
-    loginHint: {
-        color: 'rgba(255, 255, 255, 0.4)',
-        fontSize: 13,
-        textAlign: 'center',
+    errorText: {
+        color: '#ff4d4d',
+        fontSize: 14,
+        marginBottom: 16,
+        fontFamily: 'Inter_500Medium',
     },
     footer: {
         paddingHorizontal: 32,
-        paddingBottom: 20,
-        marginTop: 'auto',
+        marginTop: 60,
     },
     footerText: {
         color: 'rgba(255, 255, 255, 0.4)',
@@ -198,16 +194,12 @@ const styles = StyleSheet.create({
     },
     devSkipButton: {
         marginTop: 20,
-        padding: 10,
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.3)',
+        padding: 8,
     },
     devSkipText: {
         color: '#d4af37',
         fontSize: 12,
-        fontFamily: 'Inter_600SemiBold',
+        textDecorationLine: 'underline',
+        opacity: 0.6,
     },
 });
-

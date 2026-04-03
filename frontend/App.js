@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Text, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -42,10 +42,24 @@ export default function App() {
   const [userInfo, setUserInfo] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  // Check for existing session on mount
+  // Check for existing session or redirect callback on mount
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // 1. Önce redirect'ten mi döndük diye URL'e bak (Web tarafı)
+        if (Platform.OS === 'web' && window.location.search.includes('code=') && window.location.search.includes('state=')) {
+          const result = await AuthService.handleRedirectCallback();
+          if (result) {
+            // Callback başarılı, URL'i temizle ve girişi tamamla
+            window.history.replaceState({}, document.title, window.location.pathname);
+            const { user, accessToken: token } = result;
+            setAccessToken(token);
+            await checkUserAndNavigate(user);
+            return;
+          }
+        }
+
+        // 2. Normal session kontrolü
         const session = await AuthService.checkSession();
         if (session) {
           const { user, accessToken: token } = session;
@@ -53,7 +67,7 @@ export default function App() {
           await checkUserAndNavigate(user);
         }
       } catch (error) {
-        console.log('[App] Session check error:', error);
+        console.log('[App] Auth init error:', error);
       } finally {
         setIsInitializing(false);
       }
@@ -72,14 +86,9 @@ export default function App() {
     }
   };
 
-  const handleAuth0Login = async () => {
-    try {
-      const { user, accessToken: token } = await AuthService.login();
-      setAccessToken(token);
-      checkUserAndNavigate(user);
-    } catch (error) {
-      console.log('Login cancelled or failed:', error);
-    }
+  const handleLoginSuccess = (user, token) => {
+    setAccessToken(token);
+    checkUserAndNavigate(user);
   };
 
   const handleOnboardingComplete = async (userData) => {
@@ -137,8 +146,8 @@ export default function App() {
             <>
               {currentScreen === 'login' && (
                 <LoginScreen
-                  onLogin={handleAuth0Login}
-                  onDevLogin={() => checkUserAndNavigate({ id: 'dev_user_123', name: 'Geliştirici' })}
+                  onLoginSuccess={handleLoginSuccess}
+                  onDevLogin={() => checkUserAndNavigate({ id: 'dev_user_123', name: 'Geliştirici', email: 'dev@test.com' })}
                 />
               )}
               {currentScreen === 'onboarding' && (
@@ -205,6 +214,7 @@ export default function App() {
               {currentScreen === 'history' && (
                 <HistoryScreen
                   user={sessionUser}
+                  accessToken={accessToken}
                   onNavigate={handleNavigate}
                   onSelectReading={(reading) => {
                     setSelectedReading(reading);

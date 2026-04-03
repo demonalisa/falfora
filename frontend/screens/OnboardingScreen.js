@@ -436,7 +436,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 14,
         paddingHorizontal: 4,
-        outline: 'none',
         appearance: 'none',
         cursor: 'pointer',
         textAlign: 'center',

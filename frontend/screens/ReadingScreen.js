@@ -40,6 +40,19 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             return readingDataRaw.map(p => p.replace(/[*#]/g, '').replace(/[-_=]{2,}/g, '').trim()).filter(p => p.length > 0);
         }
 
+        // SMART FALLBACK: If it's a string, it might be a stringified JSON (from those few broken turns)
+        if (typeof readingDataRaw === 'string' && readingDataRaw.trim().startsWith('{')) {
+            try {
+                const parsed = JSON.parse(readingDataRaw);
+                const values = parsed.paragraphs || parsed.slides || parsed.reading || Object.values(parsed);
+                if (Array.isArray(values)) {
+                    return values.map(p => String(p).replace(/[*#]/g, '').trim()).filter(p => p.length > 0);
+                }
+            } catch (e) {
+                console.log('[ReadingScreen] JSON Parse fallthrough');
+            }
+        }
+
         // LEGACY OLD FALLBACK: Support for old history readings that were saved as plain continuous strings
         const text = String(readingDataRaw);
         const cleaned = text.replace(/[*#]/g, '').replace(/[-_=]{2,}/g, '');
@@ -61,7 +74,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
         return slides;
     };
 
-    const paragraphs = processReadingText(readingData?.reading);
+     // Use both result (new server) and reading (legacy) for compatibility
+    const paragraphs = processReadingText(readingData?.result || readingData?.reading);
 
     const sanitizeCardName = (cardName) => {
         if (!cardName) return "";
@@ -86,7 +100,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
         if (index === total - 1) return "Kapanış";
 
         const cardIndex = index - 1;
-        if (readingData?.cards && cardIndex >= 0 && cardIndex < readingData.cards.length) {
+        const cardsArray = readingData?.selectedCards || readingData?.cards;
+        if (cardsArray && cardIndex >= 0 && cardIndex < cardsArray.length) {
             let cardPrefix = `${cardIndex + 1}. Kart: `;
             
             const themes = {
@@ -126,7 +141,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 cardPrefix = `${currentThemes[cardIndex]} - `;
             }
 
-            return `${cardPrefix}${sanitizeCardName(readingData.cards[cardIndex])}`;
+            const cardsArray = readingData?.selectedCards || readingData?.cards;
+            return `${cardPrefix}${sanitizeCardName(cardsArray[cardIndex])}`;
         }
         return "Yorum"; 
     };
@@ -198,7 +214,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             const counts = { 'single_1': 1, '3_cards': 3, '10_cards': 10, 'love_7': 7 };
             const cardCount = counts[selectedType] || 3;
 
-            const response = await fetch(`${API_URL}/api/tarot/reading`, {
+            const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/readings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -214,7 +230,8 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                         horoscope: userInfo?.zodiac,
                         gender: userInfo?.gender || 'Belirtilmedi',
                         relationship: userInfo?.relationship
-                    }
+                    },
+                    type: selectedType // İşte o gizli kahraman!
                 }),
             });
 
@@ -224,20 +241,15 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             }
 
             const data = await response.json();
-            setReadingData(data);
-
-            // Save reading to history
-            if (user?.id) {
-                await DatabaseService.saveReading(user.id, {
-                    type: selectedType,
-                    typeName: fortuneNames[selectedType] || 'Tarot Falı',
-                    cards: data.cards,
-                    reading: data.reading
-                });
-            }
+            // Server format: { result: "...", selectedCards: [...] }
+            setReadingData({
+                ...data,
+                reading: data.result || data.reading, // Server uses 'result'
+                cards: data.selectedCards ? data.selectedCards.map(c => c.name || c) : data.cards
+            });
         } catch (err) {
             console.error('Fetch Error:', err);
-            setError(err.message);
+            setError(err.message || 'Üzgünüz, bir hata oluştu');
         } finally {
             setLoading(false);
         }
@@ -322,7 +334,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                             onMomentumScrollEnd={() => { activeScroll.current = null; }}
                             scrollEventThrottle={16}
                         >
-                                {readingData?.cards.map((card, index) => {
+                                { (readingData?.selectedCards || readingData?.cards)?.map((card, index) => {
                                     const imageSource = getCardImage(card);
                                     const isReversed = card.includes('(Ters)');
                                     return (
@@ -445,7 +457,15 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
 
                                     {paragraphs.length > 1 && (
                                         <View style={styles.paginationRow}>
-                                            <TouchableOpacity onPress={handlePrev} disabled={currentPage === 0} style={[styles.navArrow, currentPage === 0 && styles.navArrowDisabled]}>
+                                            <TouchableOpacity 
+                                                onPress={handlePrev} 
+                                                disabled={currentPage === 0} 
+                                                style={[
+                                                    styles.navArrow, 
+                                                    currentPage === 0 && styles.navArrowDisabled,
+                                                    (currentPage === 0) && { pointerEvents: 'none' }
+                                                ]}
+                                            >
                                                 <MaterialCommunityIcons name="chevron-left" size={28} color={currentPage === 0 ? "rgba(255,255,255,0.2)" : "#d4af37"} />
                                             </TouchableOpacity>
 
@@ -455,7 +475,15 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                                 ))}
                                             </View>
 
-                                            <TouchableOpacity onPress={handleNext} disabled={currentPage === paragraphs.length - 1} style={[styles.navArrow, currentPage === paragraphs.length - 1 && styles.navArrowDisabled]}>
+                                            <TouchableOpacity 
+                                                onPress={handleNext} 
+                                                disabled={currentPage === paragraphs.length - 1} 
+                                                style={[
+                                                    styles.navArrow, 
+                                                    currentPage === paragraphs.length - 1 && styles.navArrowDisabled,
+                                                    (currentPage === paragraphs.length - 1) && { pointerEvents: 'none' }
+                                                ]}
+                                            >
                                                 <MaterialCommunityIcons name="chevron-right" size={28} color={currentPage === paragraphs.length - 1 ? "rgba(255,255,255,0.2)" : "#d4af37"} />
                                             </TouchableOpacity>
                                         </View>
@@ -647,10 +675,7 @@ const styles = StyleSheet.create({
     },
     cardArtHighlight: {
         borderColor: '#d4af37',
-        shadowColor: '#d4af37',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 10,
+        boxShadow: '0 0 10px rgba(212, 175, 55, 0.8)',
     },
     cardNameHighlight: {
         color: '#d4af37',

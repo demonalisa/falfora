@@ -107,11 +107,7 @@ const styles = StyleSheet.create({
         height: 56,
         borderRadius: 14,
         overflow: 'hidden',
-        shadowColor: '#d4af37',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
+        boxShadow: '0 4px 8px rgba(212, 175, 55, 0.3)',
     },
     gradient: {
         flex: 1,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Image } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -131,7 +131,11 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
             <View style={styles.fixedActionSection}>
                 <TouchableOpacity
                     disabled={!selectedType}
-                    style={[styles.readButton, !selectedType && styles.readButtonDisabled]}
+                    style={[
+                        styles.readButton, 
+                        !selectedType && styles.readButtonDisabled,
+                        !selectedType && { pointerEvents: 'none' }
+                    ]}
                     onPress={() => onReadFortune(selectedType)}
                 >
                     <LinearGradient

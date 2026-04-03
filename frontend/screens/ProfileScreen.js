@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Image } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -77,11 +77,14 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                 <View style={styles.banner}>
                     <View style={styles.profileImageContainer}>
                         <View style={styles.avatarCircle}>
-                            <MaterialCommunityIcons name="account" size={50} color="#d4af37" />
+                            {user.picture ? (
+                                <Image source={{ uri: user.picture }} style={styles.avatarImage} />
+                            ) : (
+                                <MaterialCommunityIcons name="account" size={50} color="#d4af37" />
+                            )}
                         </View>
                     </View>
                     <Text style={styles.userName}>{fullUser.name || user.name}</Text>
-                    <Text style={styles.userId}>ID: {user.id.substring(0, 12)}...</Text>
                 </View>
 
                 {/* User Details Section */}
@@ -142,7 +145,8 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, onLogout, o
                         <TouchableOpacity 
                             style={[
                                 styles.saveBtn,
-                                isSaving && styles.saveBtnDisabled
+                                isSaving && styles.saveBtnDisabled,
+                                isSaving && { pointerEvents: 'none' }
                             ]} 
                             onPress={handleSave}
                             disabled={isSaving}
@@ -229,6 +233,11 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(212, 175, 55, 0.3)',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 50,
     },
     userName: {
         color: '#fff',
@@ -417,15 +426,11 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
         marginTop: 8,
-        shadowColor: '#d4af37',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
+        boxShadow: '0 2px 4px rgba(212, 175, 55, 0.2)',
     },
     saveBtnDisabled: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        shadowOpacity: 0,
+        boxShadow: 'none',
         elevation: 0,
     },
     saveBtnText: {

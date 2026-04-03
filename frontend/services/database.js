@@ -1,20 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/**
- * AsyncStorage Database Service
- * Handles user data and tarot reading history.
- */
-
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const KEYS = {
     USER: 'tarot_user',
-    READINGS_PREFIX: 'tarot_readings_'
+    LOCAL_READINGS_PREFIX: 'tarot_readings_local_' // Still keep for offline backup maybe
 };
 
 export const DatabaseService = {
     /**
-     * Get user data
-     * @param {string} userId 
-     * @returns {Promise<object|null>}
+     * Get user profile from local or server (can be proxy for sync)
      */
     getUser: async (userId) => {
         try {
@@ -26,11 +20,6 @@ export const DatabaseService = {
         }
     },
 
-    /**
-     * Save or update user data
-     * @param {string} userId 
-     * @param {object} data 
-     */
     saveUser: async (userId, data) => {
         try {
             const existingUser = await DatabaseService.getUser(userId) || {};
@@ -41,7 +30,6 @@ export const DatabaseService = {
                 updatedAt: new Date().toISOString(),
             };
             await AsyncStorage.setItem(`${KEYS.USER}_${userId}`, JSON.stringify(updatedUser));
-            console.log(`[DatabaseService] User ${userId} saved.`);
             return updatedUser;
         } catch (error) {
             console.error('[DatabaseService] Error saving user:', error);
@@ -50,74 +38,35 @@ export const DatabaseService = {
     },
 
     /**
-     * Save a new tarot reading
-     * @param {string} userId 
-     * @param {object} readingData 
+     * NEW: Get readings from MongoDB via Backend
+     * @param {string} token - JWT Token
      */
-    saveReading: async (userId, readingData) => {
+    getReadingsFromServer: async (token) => {
         try {
-            const readingsKey = `${KEYS.READINGS_PREFIX}${userId}`;
-            const existingReadingsJson = await AsyncStorage.getItem(readingsKey);
-            const readings = existingReadingsJson ? JSON.parse(existingReadingsJson) : [];
-
-            const newReading = {
-                id: Date.now().toString(),
-                ...readingData,
-                createdAt: new Date().toISOString(),
-            };
-
-            const updatedReadings = [newReading, ...readings].slice(0, 50); // Keep last 50 readings
-            await AsyncStorage.setItem(readingsKey, JSON.stringify(updatedReadings));
-
-            console.log(`[DatabaseService] New reading saved for ${userId}`);
-            return newReading;
+            const response = await fetch(`${BACKEND_URL}/api/readings`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Fetch readings failed');
+            return await response.json();
         } catch (error) {
-            console.error('[DatabaseService] Error saving reading:', error);
-            return null;
-        }
-    },
-
-    /**
-     * Get all readings for a user
-     * @param {string} userId 
-     * @returns {Promise<Array>}
-     */
-    getReadings: async (userId) => {
-        try {
-            const readingsKey = `${KEYS.READINGS_PREFIX}${userId}`;
-            const data = await AsyncStorage.getItem(readingsKey);
-            return data ? JSON.parse(data) : [];
-        } catch (error) {
-            console.error('[DatabaseService] Error getting readings:', error);
+            console.error('[DatabaseService] Server fetch error:', error);
             return [];
         }
     },
 
     /**
-     * Clear all readings for a user
-     * @param {string} userId 
+     * NEW: Delete a reading from MongoDB
      */
-    clearReadings: async (userId) => {
+    deleteReadingFromServer: async (readingId, token) => {
         try {
-            await AsyncStorage.removeItem(`${KEYS.READINGS_PREFIX}${userId}`);
-            console.log(`[DatabaseService] Readings cleared for ${userId}`);
+            const response = await fetch(`${BACKEND_URL}/api/readings/${readingId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return response.ok;
         } catch (error) {
-            console.error('[DatabaseService] Error clearing readings:', error);
-        }
-    },
-
-    /**
-     * Delete user data and history
-     * @param {string} userId 
-     */
-    deleteUser: async (userId) => {
-        try {
-            await AsyncStorage.removeItem(`${KEYS.USER}_${userId}`);
-            await AsyncStorage.removeItem(`${KEYS.READINGS_PREFIX}${userId}`);
-            console.log(`[DatabaseService] Data deleted for ${userId}`);
-        } catch (error) {
-            console.error('[DatabaseService] Error deleting data:', error);
+            console.error('[DatabaseService] Server delete error:', error);
+            return false;
         }
     }
 };
-

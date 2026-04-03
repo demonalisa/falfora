@@ -116,7 +116,11 @@ export default function ExploreScreen({ onNavigate }) {
                     <TouchableOpacity 
                         onPress={handlePrev} 
                         disabled={currentIndex === 0}
-                        style={[styles.controlButton, currentIndex === 0 && styles.controlButtonDisabled]}
+                        style={[
+                            styles.controlButton, 
+                            currentIndex === 0 && styles.controlButtonDisabled,
+                            (currentIndex === 0) && { pointerEvents: 'none' }
+                        ]}
                     >
                         <Ionicons name="chevron-back" size={24} color={currentIndex === 0 ? 'rgba(255,255,255,0.2)' : '#d4af37'} />
                         <Text style={[styles.controlText, currentIndex === 0 && styles.controlTextDisabled]}>Önceki</Text>
@@ -129,7 +133,11 @@ export default function ExploreScreen({ onNavigate }) {
                     <TouchableOpacity 
                         onPress={handleNext} 
                         disabled={currentIndex === currentCardList.length - 1}
-                        style={[styles.controlButton, currentIndex === currentCardList.length - 1 && styles.controlButtonDisabled]}
+                        style={[
+                            styles.controlButton, 
+                            currentIndex === currentCardList.length - 1 && styles.controlButtonDisabled,
+                            (currentIndex === currentCardList.length - 1) && { pointerEvents: 'none' }
+                        ]}
                     >
                         <Text style={[styles.controlText, currentIndex === currentCardList.length - 1 && styles.controlTextDisabled]}>Sonraki</Text>
                         <Ionicons name="chevron-forward" size={24} color={currentIndex === currentCardList.length - 1 ? 'rgba(255,255,255,0.2)' : '#d4af37'} />

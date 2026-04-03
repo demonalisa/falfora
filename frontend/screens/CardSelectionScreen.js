@@ -108,7 +108,8 @@ export default function CardSelectionScreen({ selectedType, onReadFortune, onBac
                     disabled={selectedIndices.length !== cardCount}
                     style={[
                         styles.confirmBtn,
-                        selectedIndices.length !== cardCount && styles.confirmBtnDisabled
+                        selectedIndices.length !== cardCount && styles.confirmBtnDisabled,
+                        (selectedIndices.length !== cardCount) && { pointerEvents: 'none' }
                     ]}
                     onPress={handleConfirm}
                 >
@@ -216,10 +217,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#d4af37',
         transform: [{ scale: 1.05 }],
         zIndex: 10,
-        shadowColor: '#d4af37',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
+        boxShadow: '0 0 10px rgba(212, 175, 55, 0.5)',
     },
     cardBack: {
         flex: 1,

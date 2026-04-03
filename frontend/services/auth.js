@@ -1,11 +1,14 @@
 import Auth0 from 'react-native-auth0';
 import * as Linking from 'expo-linking';
 import { createAuth0Client } from '@auth0/auth0-spa-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN;
 const AUTH0_CLIENT_ID = process.env.EXPO_PUBLIC_AUTH0_CLIENT_ID;
 const AUTH0_AUDIENCE = process.env.EXPO_PUBLIC_AUTH0_AUDIENCE;
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
+// Original native configuration
 const auth0Native = new Auth0({
     domain: AUTH0_DOMAIN,
     clientId: AUTH0_CLIENT_ID
@@ -15,12 +18,18 @@ let spaClient = null;
 
 const getSpaClient = async () => {
     if (spaClient) return spaClient;
+
+    // Original web configuration (with explicit redirect_uri to avoid mismatch)
+    const redirectUri = typeof window !== 'undefined' ? window.location.origin + (window.location.pathname.startsWith('/falfora') ? '/falfora/' : '/') : '';
+
     spaClient = await createAuth0Client({
         domain: AUTH0_DOMAIN,
         clientId: AUTH0_CLIENT_ID,
         authorizationParams: {
             audience: AUTH0_AUDIENCE,
-            scope: 'openid profile email'
+            scope: 'openid profile email',
+            redirect_uri: redirectUri,
+            connection: 'google-oauth2' // Client her zaman bu bağlantıyı kullansın
         },
         cacheLocation: 'localstorage',
         useRefreshTokens: true
@@ -28,118 +37,129 @@ const getSpaClient = async () => {
     return spaClient;
 };
 
+// Helper: Save local session
+const saveLocalSession = async (user, token) => {
+    try {
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+        await AsyncStorage.setItem('token', token);
+    } catch (e) {
+        console.error('Save session error:', e);
+    }
+};
+
 export const AuthService = {
     /**
-     * Login with Auth0 Universal Login (supports Google, Apple, Email etc.)
-     * @returns {Promise<{user: object, accessToken: string}>}
+     * Sync Auth0 User with Backend & Get Local JWT
      */
-    login: async () => {
+    syncGoogleUser: async (auth0User) => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: auth0User.email,
+                    username: auth0User.name || auth0User.nickname,
+                    sub: auth0User.id
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Sync failed');
+
+            const user = { id: data._id, name: data.username, email: data.email, picture: auth0User.picture };
+            await saveLocalSession(user, data.token);
+            return { user, accessToken: data.token };
+        } catch (error) {
+            console.error('[AuthService] Sync error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Login with Auth0 (Google button)
+     */
+    loginWithAuth0: async () => {
         try {
             if (typeof window !== 'undefined') {
-                // WEB FLOW (using @auth0/auth0-spa-js)
                 const client = await getSpaClient();
-
-                // Use popup instead of redirect for smoother integration with Expo/RN Web
-                await client.loginWithPopup();
-
-                const user = await client.getUser();
-                const accessToken = await client.getTokenSilently();
-
-                return {
-                    user: {
-                        id: user.sub,
-                        name: user.name || user.nickname || 'Cosmic Traveler',
-                        email: user.email,
-                        picture: user.picture,
-                    },
-                    accessToken,
-                };
+                // Pop-up yerine güvenli yönlendirme (Redirect) kullanıyoruz
+                await client.loginWithRedirect({
+                    authorizationParams: {
+                        connection: 'google-oauth2'
+                    }
+                });
+                return null; // Yönlendirme olduğu için fonksiyon burada durur
             } else {
-                // NATIVE FLOW (using react-native-auth0)
                 const redirectUri = Linking.createURL('callback');
-                console.log('[AuthService] Using native redirectUri:', redirectUri);
-
                 const credentials = await auth0Native.webAuth.authorize({
                     scope: 'openid profile email',
                     audience: AUTH0_AUDIENCE,
-                    redirectUri: redirectUri
+                    redirectUri,
+                    connection: 'google-oauth2'
                 });
-
-                // Decode the ID token to get user info
                 const idToken = credentials.idToken;
-                const payload = JSON.parse(
-                    atob(idToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
-                );
-
-                return {
-                    user: {
-                        id: payload.sub,
-                        name: payload.name || payload.nickname || 'Cosmic Traveler',
-                        email: payload.email,
-                        picture: payload.picture,
-                    },
-                    accessToken: credentials.accessToken,
+                const payload = JSON.parse(atob(idToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+                const auth0User = {
+                    id: payload.sub,
+                    name: payload.name || payload.nickname,
+                    email: payload.email,
+                    picture: payload.picture
                 };
+                return await AuthService.syncGoogleUser(auth0User);
             }
         } catch (error) {
-            console.error('[AuthService] Login error:', error);
+            console.error('[AuthService] Auth0 Login error:', error);
             throw error;
         }
     },
 
     /**
-     * Logout from Auth0
+     * Handle the redirect back from Auth0
      */
+    handleRedirectCallback: async () => {
+        if (typeof window !== 'undefined') {
+            const client = await getSpaClient();
+            const result = await client.handleRedirectCallback();
+            const user = await client.getUser();
+            const auth0User = {
+                id: user.sub,
+                name: user.name || user.nickname,
+                email: user.email,
+                picture: user.picture
+            };
+            return await AuthService.syncGoogleUser(auth0User);
+        }
+        return null;
+    },
+
     logout: async () => {
         try {
-            if (typeof window !== 'undefined') {
-                // WEB FLOW
-                const client = await getSpaClient();
-                const returnTo = window.location.origin + "/falfora/";
+            // Local cleanup
+            await AsyncStorage.removeItem('user');
+            await AsyncStorage.removeItem('token');
 
-                await client.logout({
-                    logoutParams: {
-                        returnTo: returnTo
-                    }
-                });
+            if (typeof window !== 'undefined') {
+                const client = await getSpaClient();
+                const returnTo = window.location.origin + (window.location.pathname.startsWith('/falfora') ? '/falfora/' : '/');
+                await client.logout({ logoutParams: { returnTo } });
             } else {
-                // NATIVE FLOW
                 const returnTo = Linking.createURL('');
                 await auth0Native.webAuth.clearSession({ returnTo });
             }
-            console.log('[AuthService] Logged out successfully.');
         } catch (error) {
             console.error('[AuthService] Logout error:', error);
-            throw error;
         }
     },
 
-    /**
-     * Get local user session if exists
-     */
     checkSession: async () => {
-        if (typeof window !== 'undefined') {
-            try {
-                const client = await getSpaClient();
-                const isAuthenticated = await client.isAuthenticated();
-                if (isAuthenticated) {
-                    const user = await client.getUser();
-                    const accessToken = await client.getTokenSilently();
-                    return {
-                        user: {
-                            id: user.sub,
-                            name: user.name || user.nickname || 'Cosmic Traveler',
-                            email: user.email,
-                            picture: user.picture,
-                        },
-                        accessToken,
-                    };
-                }
-            } catch (e) {
-                console.log('[AuthService] No active session found on web');
+        try {
+            const userStr = await AsyncStorage.getItem('user');
+            const token = await AsyncStorage.getItem('token');
+            if (userStr && token) {
+                return { user: JSON.parse(userStr), accessToken: token };
             }
+        } catch (e) {
+            console.log('[AuthService] Session check error:', e);
         }
         return null;
     }
 };
-

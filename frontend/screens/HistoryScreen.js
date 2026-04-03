@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
 
-export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
+export default function HistoryScreen({ user, accessToken, onNavigate, onSelectReading }) {
     const [historyItems, setHistoryItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -13,12 +13,12 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
     }, []);
 
     const loadHistory = async () => {
-        if (!user?.id) {
+        if (!accessToken) {
             setLoading(false);
             return;
         }
         setLoading(true);
-        const readings = await DatabaseService.getReadings(user.id);
+        const readings = await DatabaseService.getReadingsFromServer(accessToken);
         setHistoryItems(readings);
         setLoading(false);
     };
@@ -35,29 +35,7 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
     };
 
     const handleClearHistory = async () => {
-        if (Platform.OS === 'web') {
-            const confirmed = window.confirm("Tüm kozmik kayıtları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.");
-            if (confirmed) {
-                await DatabaseService.clearReadings(user.id);
-                setHistoryItems([]);
-            }
-        } else {
-            Alert.alert(
-                "Geçmişi Temizle",
-                "Tüm kozmik kayıtları silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-                [
-                    { text: "İptal", style: "cancel" },
-                    {
-                        text: "Hepsini Sil",
-                        style: "destructive",
-                        onPress: async () => {
-                            await DatabaseService.clearReadings(user.id);
-                            setHistoryItems([]);
-                        }
-                    }
-                ]
-            );
-        }
+        alert("Toplu temizleme şuan devredışı. Lütfen falları tek tek siliniz veya bu özelliği yakında sunucu taraflı ekleyelim.");
     };
 
     const sanitizeCardName = (cardName) => {
@@ -115,9 +93,9 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
                     </View>
                 ) : (
                     <View style={styles.listContainer}>
-                        {historyItems.map((item) => (
+                        {historyItems.map((item, index) => (
                             <TouchableOpacity
-                                key={item.id}
+                                key={item._id || item.id || `history-${index}`}
                                 style={styles.historyCard}
                                 onPress={() => onSelectReading(item)}
                                 activeOpacity={0.7}
@@ -125,22 +103,41 @@ export default function HistoryScreen({ user, onNavigate, onSelectReading }) {
                                 <View style={styles.cardHeader}>
                                     <View style={styles.typeTag}>
                                         <MaterialCommunityIcons
-                                            name={item.type === '10_cards' ? 'star-shooting' : 'cards-playing-outline'}
+                                            name={{
+                                                'single_1': 'star-shooting',
+                                                '3_cards': 'cards-playing-outline',
+                                                'love_7': 'heart-multiple',
+                                                '10_cards': 'auto-fix'
+                                            }[item.type] || 'cards-playing-outline'}
                                             size={16}
                                             color="#d4af37"
                                         />
-                                        <Text style={styles.typeText}>{item.typeName}</Text>
+                                        <Text style={styles.typeText}>
+                                            {{
+                                                'love_7': 'Aşk Açılımı',
+                                                '10_cards': 'Galaktik Açılım',
+                                                '3_cards': 'Günlük Bakış',
+                                                'single_1': 'Günün Tavsiyesi'
+                                            }[item.type] || (
+                                                // Eski kayıtlar için kart sayısına veya slayt sayısına (result length) bak
+                                                (item.cards?.length === 7 || item.result?.length === 10) ? 'Aşk Açılımı' : 
+                                                (item.cards?.length === 10 || item.result?.length === 13) ? 'Galaktik Açılım' : 
+                                                (item.cards?.length === 3 || item.result?.length === 6) ? 'Günlük Bakış' :
+                                                (item.cards?.length === 1 || item.result?.length === 4) ? 'Günün Tavsiyesi' :
+                                                'Tarot Falı'
+                                            )}
+                                        </Text>
                                     </View>
                                     <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
                                 </View>
 
                                 <View style={{ height: 8 }} />
                                 <Text style={styles.outcomeText} numberOfLines={2}>
-                                    {item.cards.map(c => sanitizeCardName(c)).join(', ')}
+                                    {item.selectedCards?.map(c => sanitizeCardName(c.name || c)).join(', ')}
                                 </Text>
 
                                 <Text style={styles.readingPreview} numberOfLines={3}>
-                                    {item.reading}
+                                    {item.result}
                                 </Text>
 
                                 <View style={styles.cardFooter}>
