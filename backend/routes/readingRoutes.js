@@ -4,13 +4,15 @@ const {
     createReading, 
     getReadings, 
     getReadingById, 
-    deleteReading 
+    deleteReading,
+    clearReadings
 } = require('../controllers/readingController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.route('/')
     .post(protect, createReading)
-    .get(protect, getReadings);
+    .get(protect, getReadings)
+    .delete(protect, clearReadings);
 
 router.route('/:id')
     .get(protect, getReadingById)

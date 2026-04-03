@@ -23,6 +23,34 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
         setLoading(false);
     };
 
+    const handleDeleteOne = async (readingId) => {
+        Alert.alert(
+            "Kaydı Sil",
+            "Bu kozmik kaydı kalıcı olarak silmek istediğinize emin misiniz?",
+            [
+                { text: "Vazgeç", style: "cancel" },
+                { 
+                    text: "Sil", 
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            const success = await DatabaseService.deleteReadingFromServer(readingId, accessToken);
+                            if (success) {
+                                // Listeyi güncelle
+                                setHistoryItems(prev => prev.filter(item => item._id !== readingId));
+                            } else {
+                                Alert.alert("Hata", "Kayıt silinemedi. Lütfen tekrar deneyin.");
+                            }
+                        } catch (error) {
+                            console.error('Delete error:', error);
+                            Alert.alert("Hata", "Bir sorun oluştu.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('tr-TR', {
@@ -35,7 +63,30 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
     };
 
     const handleClearHistory = async () => {
-        alert("Toplu temizleme şuan devredışı. Lütfen falları tek tek siliniz veya bu özelliği yakında sunucu taraflı ekleyelim.");
+        Alert.alert(
+            "Tümünü Sil",
+            "Tüm geçmiş kayıtlarınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+            [
+                { text: "Vazgeç", style: "cancel" },
+                { 
+                    text: "Tümünü Sil", 
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            const success = await DatabaseService.clearHistoryFromServer(accessToken);
+                            if (success) {
+                                setHistoryItems([]);
+                            } else {
+                                Alert.alert("Hata", "Geçmiş temizlenemedi.");
+                            }
+                        } catch (error) {
+                            console.error('Clear error:', error);
+                            Alert.alert("Hata", "Bir sorun oluştu.");
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const sanitizeCardName = (cardName) => {
@@ -141,6 +192,12 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
                                 </Text>
 
                                 <View style={styles.cardFooter}>
+                                    <TouchableOpacity 
+                                        onPress={() => handleDeleteOne(item._id)}
+                                        style={styles.cardDeleteButton}
+                                    >
+                                        <MaterialCommunityIcons name="trash-can-outline" size={20} color="rgba(255, 77, 77, 0.6)" />
+                                    </TouchableOpacity>
                                     <MaterialCommunityIcons name="arrow-right" size={20} color="#d4af37" />
                                 </View>
                             </TouchableOpacity>
@@ -267,8 +324,13 @@ const styles = StyleSheet.create({
     cardFooter: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: 4,
+        justifyContent: 'space-between',
+        marginTop: 4,
+    },
+    cardDeleteButton: {
+        padding: 5,
+        borderRadius: 8,
+        backgroundColor: 'rgba(255, 77, 77, 0.05)',
     },
     viewMoreText: {
         display: 'none',

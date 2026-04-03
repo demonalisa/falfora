@@ -1,6 +1,7 @@
+import { Platform } from 'react-native';
 import Auth0 from 'react-native-auth0';
 import * as Linking from 'expo-linking';
-import { createAuth0Client } from '@auth0/auth0-spa-js';
+// Web-only imports will be lazy-required to prevent native crashes
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AUTH0_DOMAIN = process.env.EXPO_PUBLIC_AUTH0_DOMAIN;
@@ -20,8 +21,10 @@ const getSpaClient = async () => {
     if (spaClient) return spaClient;
 
     // Original web configuration (with explicit redirect_uri to avoid mismatch)
-    const redirectUri = typeof window !== 'undefined' ? window.location.origin + (window.location.pathname.startsWith('/falfora') ? '/falfora/' : '/') : '';
+    const redirectUri = Platform.OS === 'web' && typeof window !== 'undefined' && window.location ? window.location.origin + (window.location.pathname.startsWith('/falfora') ? '/falfora/' : '/') : '';
 
+    // Lazy-require web client to prevent native crashes
+    const { createAuth0Client } = require('@auth0/auth0-spa-js');
     spaClient = await createAuth0Client({
         domain: AUTH0_DOMAIN,
         clientId: AUTH0_CLIENT_ID,
@@ -79,7 +82,7 @@ export const AuthService = {
      */
     loginWithAuth0: async () => {
         try {
-            if (typeof window !== 'undefined') {
+            if (Platform.OS === 'web') {
                 const client = await getSpaClient();
                 // Pop-up yerine güvenli yönlendirme (Redirect) kullanıyoruz
                 await client.loginWithRedirect({
@@ -116,7 +119,7 @@ export const AuthService = {
      * Handle the redirect back from Auth0
      */
     handleRedirectCallback: async () => {
-        if (typeof window !== 'undefined') {
+        if (Platform.OS === 'web') {
             const client = await getSpaClient();
             const result = await client.handleRedirectCallback();
             const user = await client.getUser();
@@ -137,7 +140,7 @@ export const AuthService = {
             await AsyncStorage.removeItem('user');
             await AsyncStorage.removeItem('token');
 
-            if (typeof window !== 'undefined') {
+            if (Platform.OS === 'web') {
                 const client = await getSpaClient();
                 const returnTo = window.location.origin + (window.location.pathname.startsWith('/falfora') ? '/falfora/' : '/');
                 await client.logout({ logoutParams: { returnTo } });

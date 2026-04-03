@@ -10,27 +10,68 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // @route POST /api/readings
 // @access Private
 const createReading = asyncHandler(async (req, res) => {
-    const { cardCount = 3, spreadName = "Genel", userInfo, manualCards, type = "tarot" } = req.body;
+    const { cardCount = 3, spreadName = "Genel", userInfo, manualCards, selectedCards: reqSelectedCards, type = "tarot" } = req.body;
 
     if (!userInfo) {
         res.status(400);
         throw new Error('User info is required');
     }
 
-    const selectedCards = manualCards && Array.isArray(manualCards) ? manualCards : pickRandomCards(cardCount);
-    const readingType = `${cardCount} kartlık (${spreadName}) Tarot okuması`;
+    const selectedCards = reqSelectedCards || (manualCards && Array.isArray(manualCards) ? manualCards : pickRandomCards(cardCount));
 
-    const isLoveSpread = type === "love_7" || spreadName === "Aşk Açılımı";
-    const isDailySpread = type === "3_cards" || spreadName === "Günlük Bakış";
-    const isGalacticSpread = type === "10_cards" || spreadName === "Galaktik Açılım";
-    const isSingleSpread = type === "single_1" || spreadName === "Günün Tavsiyesi";
+    const themes = {
+        'love_7': {
+            title: 'Aşk Açılımı',
+            details: [
+                '1. KART: Senin (Kullanıcının) derin duyguları ve mevcut ruh halin.',
+                '2. KART: Karşı tarafın (Partnerin/Adayın) sana karşı gerçek hisleri.',
+                '3. KART: İlişkideki mevcut enerji ve aranızdaki kozmik uyum.',
+                '4. KART: Senin bu ilişkiden beklentin, umudun veya gizli isteğin.',
+                '5. KART: Karşı tarafın bu ilişkiden beklentisi ve vizyonu.',
+                '6. KART: Yolunuza çıkan bir engel, çözülmesi gereken bir düğüm veya dış bir zorluk.',
+                '7. KART: İlişkinin yakın gelecekteki potansiyeli ve varacağı kozmik sonuç.'
+            ]
+        },
+        '3_cards': {
+            title: 'Günlük Bakış',
+            details: [
+                '1. KART: Geçmişin tortuları ve bugününü etkileyen eski enerjiler.',
+                '2. KART: Bugünün ana enerjisi, şu anki mevcut durumun.',
+                '3. KART: Yakın gelecekte seni bekleyen potansiyel ve kozmik mesaj.'
+            ]
+        },
+        '10_cards': {
+            title: 'Galaktik Açılım',
+            details: [
+                '1. KART: Mevcut Durumun ve merkezin.',
+                '2. KART: Yoluna çıkan zorluk ve engel.',
+                '3. KART: Amaçların, dileklerin ve en iyi ihtimal.',
+                '4. KART: Bilinçaltın, temel korkuların ve köklerin.',
+                '5. KART: Geçmişin enerjisi, arkanda bıraktıkların.',
+                '6. KART: Yakın gelecekte karşılaşacağın etkiler.',
+                '7. KART: Kendi iç dünyan ve bakış açın.',
+                '8. KART: Dış dünyadaki insanların seni nasıl gördüğü ve çevre etkileri.',
+                '9. KART: Umutların, beklentilerin veya endişelerin.',
+                '10. KART: Kozmik sonuç, varacağın son nokta.'
+            ]
+        },
+        'single_1': {
+            title: 'Günün Tavsiyesi',
+            details: [
+                '1. KART: Bugün alman gereken ana mesaj, genel tavsiye ve günün rehberlik enerjisi.'
+            ]
+        }
+    };
+
+    const currentSpread = themes[type] || {
+        title: spreadName || 'Genel Açılım',
+        details: selectedCards.map((_, i) => `${i + 1}. KART: Bu kartın genel enerjisi ve yorumu.`)
+    };
 
     const prompt = `
       Sen kadim bilgilere sahip, sezgileri çok güçlü bir Tarot Ustasısın. 
-      Aşağıdaki kullanıcı için özel bir ${readingType} yapacaksın:
-
-      Kullanıcı Bilgileri:
-      - İsim: ${userInfo.name || 'Misafir'}
+      Aşağıda kullanıcı bilgileri:
+      - İsim: ${userInfo.name || 'Kullanıcı'}
       - Doğum Tarihi: ${userInfo.birthDate || 'Belirtilmedi'}
       - Burç: ${userInfo.horoscope || 'Belirtilmedi'}
       - Cinsiyet: ${userInfo.gender || 'Belirtilmedi'}
@@ -39,83 +80,56 @@ const createReading = asyncHandler(async (req, res) => {
       Seçilen Kartlar:
       ${selectedCards.join('\n- ')}
 
-      ${isLoveSpread ? `
-      AŞK AÇILIMI TEMALARI (7 KART):
-      1. KART: Senin (Kullanıcının) derin duyguları ve mevcut ruh halin.
-      2. KART: Karşı tarafın (Partnerin/Adayın) sana karşı gerçek hisleri.
-      3. KART: İlişkideki mevcut enerji ve aranızdaki kozmik uyum.
-      4. KART: Senin bu ilişkiden beklentin, umudun veya gizli isteğin.
-      5. KART: Karşı tarafın bu ilişkiden beklentisi ve vizyonu.
-      6. KART: Yolunuza çıkan bir engel, çözülmesi gereken bir düğüm veya dış bir zorluk.
-      7. KART: İlişkinin yakın gelecekteki potansiyeli ve varacağı kozmik sonuç.
-      ` : isDailySpread ? `
-      GÜNLÜK BAKIŞ TEMALARI (3 KART):
-      1. KART: Geçmişin tortuları ve bugününü etkileyen eski enerjiler.
-      2. KART: Bugünün ana enerjisi, şu anki mevcut durumun.
-      3. KART: Yakın gelecekte seni bekleyen potansiyel ve kozmik mesaj.
-      ` : isGalacticSpread ? `
-      GALAKTİK AÇILIM TEMALARI (10 KART):
-      1. KART: Mevcut Durumun ve merkezin.
-      2. KART: Yoluna çıkan zorluk ve engel.
-      3. KART: Amaçların, dileklerin ve en iyi ihtimal.
-      4. KART: Bilinçaltın, temel korkuların ve köklerin.
-      5. KART: Geçmişin enerjisi, arkanda bıraktıkların.
-      6. KART: Yakın gelecekte karşılaşacağın etkiler.
-      7. KART: Kendi iç dünyan ve bakış açın.
-      8. KART: Dış dünyadaki insanların seni nasıl gördüğü ve çevre etkileri.
-      9. KART: Umutların, beklentilerin veya endişelerin.
-      10. KART: Kozmik sonuç, varacağın son nokta.
-      ` : isSingleSpread ? `
-      GÜNÜN TAVSİYESİ TEMASI (1 KART):
-      1. KART: Bugün alman gereken ana mesaj, genel tavsiye ve günün rehberlik enerjisi.
-      ` : ''}
+      Bu bir "${currentSpread.title}"dır.
+      Kartların yorum sırası ve temaları şu şekildedir:
+      ${currentSpread.details.join('\n      ')}
 
-      ÖNEMLİ FORMAT VE UZUNLUK KURALI:
-      Yazacağın fal metni TAM OLARAK ${cardCount + 3} paragraf uzunluğunda olmalıdır.
-      Kurgun şu sırayla ilerlemelidir:
-      1. Paragraf: Mistik ve etkileyici bir giriş yazısı.
-      Orta Paragraflar: Seçilen her bir kart için, kartın ismini veya numarasını ASLA zikretmeden, tamamen o kartın manasını anlatan 1 paragraf (Toplam ${cardCount} paragraf).
-      NOT: Orta paragraflar yukarıdaki açılım tipine göre tanımlanan temaları (Sen, O, İlişki, Geçmiş, Bugün, Gelecek, Engel vb.) sırasıyla derinlemesine işlemelidir.
-      Sondan Bir Önceki Paragraf: Tüm kartların anlattıklarına yönelik genel bir özet.
-      Son Paragraf: Güzel, bilgece bir kapanış ve tavsiye yazısı.
+      KURALLAR:
+      1) Cevabın SADECE burada istenen kart yorumlarını içeren paragraflar olucak şekilde cevap versin. Toplam ${selectedCards.length} paragraf olmalıdır.
+      2) 1. paragraf HER ZAMAN kullanıcıyı ismiyle ("${userInfo.name || 'Kullanıcı'}") mistik ve sıcak bir şekilde selamlayarak başlamalı, ardından ilk kartın yorumuyla devam etmelidir.
+      3) Paragraflarda kart isimlerini (Kupa Ası vb.) veya numaralarını (1. Kart vb.) ASLA zikretme, doğrudan yorumu yap.
+      4) Yanıtın SADECE aşağıdaki JSON formatında olmalıdır. Başka hiçbir metin ekleme.
 
-      KESİN YASAKLAR VE KURALLAR:
-      1) Paragraflara YALNIZCA GÖVDE METNİ ile doğrudan giriş yap. "Giriş:", "Özet:", "1. Kart Kılıç Ası:" vb. HİÇBİR BAŞLIK ETİKETİ VEYA KART ADI YAZILMAYACAK.
-      2) Geri dönüşün SADECE VE SADECE AŞAĞIDAKİ GİBİ GEÇERLİ BİR "JSON" DİZİSİ OLMALIDIR. Başında veya sonunda markdown (md) etiketleri veya yazılı metin KESİNLİKLE koyma. Sadece köşeli parantezli bir array dön.
-
-      Örnek Beklenen Çıktı Formatı:
-      [
-        "Mistik giriş yazısı buraya gelecek...",
-        "İlk kartın sadece yorumu buraya gelecek...",
-        "İkinci kartın sadece yorumu buraya gelecek...",
-        "Falın özeti buraya gelecek...",
-        "Kapanış tavsiyesi buraya gelecek..."
-      ]
+      {
+        "paragraphs": [
+          "Selam [İsim]... İlk kartın yorumu...",
+          "İkinci kartın yorumu...",
+          ...
+        ]
+      }
     `;
 
-    const chatCompletion = await groq.chat.completions.create({
-        messages: [
-            {
-                role: 'system',
-                content: 'Sen kadim bilgilere sahip, sezgileri çok güçlü bir Tarot Ustasısın. Kullanıcıya mistik ve etkileyici tarot falı yorumları yaparsın. Yanıtlarını HER ZAMAN ve SADECE TÜRKÇE dilinde verirsin. Kesinlikle başka dillerden (Çince, İngilizce vb.) karakterler veya kelimeler kullanma. Yanıtlarını her zaman geçerli JSON formatında döndürürsün.'
-            },
-            {
-                role: 'user',
-                content: prompt
-            }
-        ],
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.9,
-        max_tokens: 4096,
-        response_format: { type: 'json_object' }
-    });
+    let chatCompletion;
+    try {
+        chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: 'system',
+                    content: 'Sen kadim bilgilere sahip, sezgileri çok güçlü bir Tarot Ustasısın. Yanıtlarını HER ZAMAN ve SADECE TÜRKÇE dilinde, geçerli bir JSON objesi olarak verirsin.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            model: 'llama-3.1-8b-instant',
+            temperature: 0.8,
+            max_tokens: 2000,
+            response_format: { type: 'json_object' }
+        });
+    } catch (groqError) {
+        console.error('[Groq API Error]:', groqError);
+        res.status(500);
+        throw new Error('AI servisine bağlanılamadı. Lütfen daha sonra tekrar deneyin.');
+    }
 
-    const text = chatCompletion.choices[0]?.message?.content || '[]';
+    const text = chatCompletion.choices[0]?.message?.content || '{}';
+    console.log('[Groq Response]:', text);
 
     let slidesArray;
     try {
         const parsed = JSON.parse(text);
-        
+
         if (Array.isArray(parsed)) {
             slidesArray = parsed;
         } else if (typeof parsed === 'object' && parsed !== null) {
@@ -166,9 +180,9 @@ const createReading = asyncHandler(async (req, res) => {
 // @route GET /api/readings
 // @access Private
 const getReadings = asyncHandler(async (req, res) => {
-    const readings = await Reading.find({ 
-        userId: req.user._id, 
-        deletedByUser: false 
+    const readings = await Reading.find({
+        userId: req.user._id,
+        deletedByUser: false
     }).sort({ createdAt: -1 });
 
     res.json(readings);
@@ -210,9 +224,21 @@ const deleteReading = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc Clear all user readings (soft delete)
+// @route DELETE /api/readings
+// @access Private
+const clearReadings = asyncHandler(async (req, res) => {
+    await Reading.updateMany(
+        { userId: req.user._id, deletedByUser: false },
+        { $set: { deletedByUser: true } }
+    );
+    res.json({ message: 'All readings removed' });
+});
+
 module.exports = {
     createReading,
     getReadings,
     getReadingById,
-    deleteReading
+    deleteReading,
+    clearReadings
 };

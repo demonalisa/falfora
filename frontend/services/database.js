@@ -68,5 +68,21 @@ export const DatabaseService = {
             console.error('[DatabaseService] Server delete error:', error);
             return false;
         }
+    },
+
+    /**
+     * NEW: Clear all readings from server
+     */
+    clearHistoryFromServer: async (token) => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/readings`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error('[DatabaseService] Server clear error:', error);
+            return false;
+        }
     }
 };

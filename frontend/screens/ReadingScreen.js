@@ -5,15 +5,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
 import { getCardImage } from '../utils/cardImageMap';
 
-// Akıllı API Yapılandırması: Yerelde localhost, yayında Render adresi kullanılır.
-const getApiUrl = () => {
-    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return 'http://localhost:3000';
-    }
-    return 'https://falfora-api.onrender.com';
-};
-
-const API_URL = getApiUrl();
 
 export default function ReadingScreen({ user, userInfo, accessToken, selectedType, manualSelectedCards, existingReading, onBack, onNavigate }) {
     const [loading, setLoading] = useState(!existingReading);
@@ -37,7 +28,9 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
 
         // NEW: If backend already returns a perfected JSON array, just clean artifacts and use it!
         if (Array.isArray(readingDataRaw)) {
-            return readingDataRaw.map(p => p.replace(/[*#]/g, '').replace(/[-_=]{2,}/g, '').trim()).filter(p => p.length > 0);
+            return readingDataRaw
+                .map(p => String(p || '').replace(/[*#]/g, '').replace(/[-_=]{2,}/g, '').trim())
+                .filter(p => p.length > 0);
         }
 
         // SMART FALLBACK: If it's a string, it might be a stringified JSON (from those few broken turns)
@@ -93,58 +86,50 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
     };
 
     const getSlideTitle = (index) => {
-        const total = paragraphs.length;
-        if (total === 0) return "Göksel Yorum";
-        if (index === 0) return "Giriş";
-        if (index === total - 2) return "Özet";
-        if (index === total - 1) return "Kapanış";
-
-        const cardIndex = index - 1;
         const cardsArray = readingData?.selectedCards || readingData?.cards;
-        if (cardsArray && cardIndex >= 0 && cardIndex < cardsArray.length) {
-            let cardPrefix = `${cardIndex + 1}. Kart: `;
-            
-            const themes = {
-                'single_1': [
-                    'Günün Mesajı'
-                ],
-                'love_7': [
-                    'Senin derin duyguların',
-                    'Onun sana karşı hisleri',
-                    'Mevcut enerji ve uyum',
-                    'İlişkiden beklentin',
-                    'Onun ilişkiden beklentisi',
-                    'Yolunuzdaki engel/zorluk',
-                    'Potansiyel sonuç'
-                ],
-                '3_cards': [
-                    'Geçmiş / Kökler',
-                    'Bugün / Mevcut Durum',
-                    'Gelecek / Potansiyel'
-                ],
-                '10_cards': [
-                    'Mevcut Durum',
-                    'Engel / Zorluk',
-                    'Amaç / İdeal',
-                    'Bilinçaltı / Temel',
-                    'Geçmiş',
-                    'Gelecek',
-                    'Kendi İç Dünyan',
-                    'Dış Etkiler',
-                    'Umutlar ve Korkular',
-                    'Kozmik Sonuç'
-                ]
-            };
-
-            const currentThemes = themes[selectedType];
-            if (currentThemes && currentThemes[cardIndex]) {
-                cardPrefix = `${currentThemes[cardIndex]} - `;
-            }
-
-            const cardsArray = readingData?.selectedCards || readingData?.cards;
-            return `${cardPrefix}${sanitizeCardName(cardsArray[cardIndex])}`;
+        if (!cardsArray || index < 0 || index >= cardsArray.length) {
+            return "Kozmik Bilgelik";
         }
-        return "Yorum"; 
+
+        const themes = {
+            'single_1': ['Günün Mesajı'],
+            'love_7': [
+                'Senin derin duyguların',
+                'Onun sana karşı hisleri',
+                'Mevcut enerji ve uyum',
+                'İlişkiden beklentin',
+                'Onun ilişkiden beklentisi',
+                'Yolunuzdaki engel/zorluk',
+                'Potansiyel sonuç'
+            ],
+            '3_cards': [
+                'Geçmiş / Kökler',
+                'Bugün / Mevcut Durum',
+                'Gelecek / Potansiyel'
+            ],
+            '10_cards': [
+                'Mevcut Durum',
+                'Engel / Zorluk',
+                'Amaç / İdeal',
+                'Bilinçaltı / Temel',
+                'Geçmiş',
+                'Gelecek',
+                'Kendi İç Dünyan',
+                'Dış Etkiler',
+                'Umutlar ve Korkular',
+                'Kozmik Sonuç'
+            ]
+        };
+
+        const currentThemes = themes[selectedType];
+        let themePrefix = "";
+        if (currentThemes && currentThemes[index]) {
+            themePrefix = `${currentThemes[index]} - `;
+        } else {
+            themePrefix = `${index + 1}. Durum - `;
+        }
+
+        return `${themePrefix}${sanitizeCardName(cardsArray[index])}`;
     };
 
     const handleNext = () => {
@@ -161,7 +146,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 const cardWidth = 74; // 64 width + 10 margin
                 const halfScreen = screenWidth / 2;
                 const halfCard = cardWidth / 2;
-                const targetTopX = ((nextIndex - 1) * cardWidth) - halfScreen + halfCard;
+                const targetTopX = (nextIndex * cardWidth) - halfScreen + halfCard;
                 cardsScrollViewRef.current.scrollTo({
                     x: Math.max(0, targetTopX),
                     animated: true
@@ -184,7 +169,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                 const cardWidth = 74; 
                 const halfScreen = screenWidth / 2;
                 const halfCard = cardWidth / 2;
-                const targetTopX = ((prevIndex - 1) * cardWidth) - halfScreen + halfCard;
+                const targetTopX = (prevIndex * cardWidth) - halfScreen + halfCard;
                 cardsScrollViewRef.current.scrollTo({
                     x: Math.max(0, targetTopX),
                     animated: true
@@ -236,8 +221,9 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
             });
 
             if (!response.ok) {
-                console.error('[ReadingScreen] API Response Error Status:', response.status);
-                throw new Error(`Üzgünüz, yıldızlar şu an biraz bulanık. Lütfen tekrar deneyin. (Hata Kodu: ${response.status})`);
+                const errorData = await response.json().catch(() => ({}));
+                console.error('[ReadingScreen] API Response Error Status:', response.status, errorData);
+                throw new Error(errorData.message || `Üzgünüz, yıldızlar şu an biraz bulanık. (Hata Kodu: ${response.status})`);
             }
 
             const data = await response.json();
@@ -312,7 +298,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                 const halfCard = cardWidth / 2;
 
                                 // Kart listesindeki pozisyonu alt slayt indeksine çevir
-                                const virtualIndex = (scrollX + halfScreen - halfCard) / cardWidth + 1;
+                                const virtualIndex = (scrollX + halfScreen - halfCard) / cardWidth;
                                 const roundIndex = Math.round(virtualIndex);
 
                                 // Sayfayı (currentPage) ve dolayısıyla Highlight + Başlığı güncelle
@@ -342,18 +328,18 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                             key={index} 
                                             style={[
                                                 styles.cardItem, 
-                                                currentPage === index + 1 && styles.cardItemHighlight
+                                                currentPage === index && styles.cardItemHighlight
                                             ]}
                                             activeOpacity={0.7}
                                             // TEK DOKUNUŞ: O slayta git
                                             onPress={() => {
                                                 if (scrollViewRef.current) {
                                                     // Önce sayfayı ve paralamayı (highlight) hemen güncelle
-                                                    setCurrentPage(index + 1);
+                                                    setCurrentPage(index);
                                                     
                                                     // Sonra pürüzsüzce o konuma kaydır
                                                     scrollViewRef.current.scrollTo({
-                                                        x: (index + 1) * slideWidth,
+                                                        x: index * slideWidth,
                                                         animated: true
                                                     });
                                                 }
@@ -368,7 +354,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                             }}
                                             delayLongPress={500} // Yarım saniye basılı tutma süresi
                                         >
-                                            <View style={[styles.cardArt, currentPage === index + 1 && styles.cardArtHighlight]}>
+                                            <View style={[styles.cardArt, currentPage === index && styles.cardArtHighlight]}>
                                                 {imageSource ? (
                                                     <Image 
                                                         source={imageSource} 
@@ -379,7 +365,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                                     <MaterialCommunityIcons name="cards-playing-outline" size={40} color="#d4af37" />
                                                 )}
                                             </View>
-                                            <Text style={[styles.cardName, currentPage === index + 1 && styles.cardNameHighlight]} numberOfLines={2}>
+                                            <Text style={[styles.cardName, currentPage === index && styles.cardNameHighlight]} numberOfLines={2}>
                                                 {sanitizeCardName(card)}
                                             </Text>
                                         </TouchableOpacity>
@@ -420,7 +406,7 @@ export default function ReadingScreen({ user, userInfo, accessToken, selectedTyp
                                                     const cardWidth = 88; 
                                                     const halfScreen = screenWidth / 2;
                                                     const halfCard = cardWidth / 2;
-                                                    const targetTopX = ((index - 1) * cardWidth) - halfScreen + halfCard;
+                                                    const targetTopX = (index * cardWidth) - halfScreen + halfCard;
                                                     
                                                     cardsScrollViewRef.current.scrollTo({
                                                         x: Math.max(0, targetTopX),
