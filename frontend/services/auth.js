@@ -34,7 +34,8 @@ const getSpaClient = async () => {
             audience: AUTH0_AUDIENCE,
             scope: 'openid profile email',
             redirect_uri: redirectUri,
-            connection: 'google-oauth2' // Client her zaman bu bağlantıyı kullansın
+            connection: 'google-oauth2',
+            prompt: 'login select_account' // En güçlü kombinasyon: Girişi ve seçimi zorlar
         },
         cacheLocation: 'localstorage',
         useRefreshTokens: true
@@ -99,7 +100,8 @@ export const AuthService = {
                 // Pop-up yerine güvenli yönlendirme (Redirect) kullanıyoruz
                 await client.loginWithRedirect({
                     authorizationParams: {
-                        connection: 'google-oauth2'
+                        connection: 'google-oauth2',
+                        prompt: 'login select_account' // Web Redirect için giriş ve seçim zorlama
                     }
                 });
                 return null; // Yönlendirme olduğu için fonksiyon burada durur
@@ -109,7 +111,8 @@ export const AuthService = {
                     scope: 'openid profile email',
                     audience: AUTH0_AUDIENCE,
                     redirectUri,
-                    connection: 'google-oauth2'
+                    connection: 'google-oauth2',
+                    prompt: 'login select_account' // Telefon için giriş ve seçim zorlama
                 });
                 const idToken = credentials.idToken;
                 const payload = JSON.parse(atob(idToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));

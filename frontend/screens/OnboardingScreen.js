@@ -53,6 +53,8 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     const [selectedGender, setSelectedGender] = useState('Kadın');
     const [dateError, setDateError] = useState(false);
     const [isZodiacAuto, setIsZodiacAuto] = useState(false);
+    const [showLeftArrow, setShowLeftArrow] = useState(false);
+    const [showRightArrow, setShowRightArrow] = useState(true);
     const webDateInputRef = useRef(null);
 
     // Auto-detect zodiac from birth date
@@ -63,6 +65,17 @@ export default function OnboardingScreen({ onComplete, onBack }) {
             setIsZodiacAuto(true);
         }
     }, [birthDate]);
+
+    const handleScroll = (event) => {
+        const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+        // Detect if we are at the beginning
+        const isAtStart = contentOffset.x <= 10; 
+        // Detect if we are at the end (with a small buffer)
+        const isAtEnd = contentOffset.x + layoutMeasurement.width >= contentSize.width - 10;
+
+        setShowLeftArrow(!isAtStart);
+        setShowRightArrow(!isAtEnd);
+    };
 
     const handleZodiacSelect = (zodiacName) => {
         setSelectedZodiac(zodiacName);
@@ -108,26 +121,27 @@ export default function OnboardingScreen({ onComplete, onBack }) {
 
     return (
         <View style={styles.onboardingContainer}>
-            {/* Header */}
+            {/* Header - Compact height with Back Button */}
             <View style={styles.onboardingHeader}>
+                <TouchableOpacity style={styles.backButton} onPress={onBack}>
+                    <MaterialIcons name="chevron-left" size={24} color="#d4af37" />
+                </TouchableOpacity>
                 <Text style={styles.onboardingHeaderTitle}>Kullanıcı Bilgileri</Text>
+                <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView 
-                showsVerticalScrollIndicator={false} 
-                contentContainerStyle={styles.scrollContent}
-            >
-                {/* Headline */}
+            <View style={styles.mainContentFit}>
+                {/* Headline - Significantly smaller */}
                 <View style={styles.onboardingHeadline}>
                     <Text style={styles.onboardingTitle}>Göksel Uyum</Text>
-                    <Text style={styles.onboardingSubtitle}>Yıldızların yolunuzu aydınlatması için kendinizi tanıtın.</Text>
+                    <Text style={styles.onboardingSubtitle}>Yıldızların yolunu keşfetmek için bilgilerinizi girin.</Text>
                 </View>
 
-                {/* Form */}
+                {/* Form - Tight gaps */}
                 <View style={styles.formContainer}>
                     {/* Birth Date Section */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Doğum Tarihi * {dateError && <Text style={{color: '#ff4d4d', textTransform: 'none'}}> (Gerekli)</Text>}</Text>
+                        <Text style={styles.inputLabel}>Doğum Tarihi *</Text>
                         <View style={Platform.OS === 'web' ? styles.webDateContainer : styles.textInputWrapper}>
                             {Platform.OS === 'web' ? (
                                 <View style={styles.webSelectGroup}>
@@ -153,7 +167,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                             const month = parseInt(e.target.value);
                                             const newDate = new Date(birthDate || new Date());
                                             newDate.setMonth(month);
-                                            setBirthDate(new Date(newDate));
+                                            setBirthDate(newDate);
                                             setDateError(false);
                                         }}
                                     >
@@ -168,7 +182,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                             const year = parseInt(e.target.value);
                                             const newDate = new Date(birthDate || new Date());
                                             newDate.setFullYear(year);
-                                            setBirthDate(new Date(newDate));
+                                            setBirthDate(newDate);
                                             setDateError(false);
                                         }}
                                     >
@@ -177,23 +191,21 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                     </select>
                                 </View>
                             ) : (
-                                <>
-                                    <TouchableOpacity
-                                        style={styles.textInputWrapper}
-                                        onPress={() => setShowDatePicker(true)}
-                                    >
-                                        <View style={[styles.textInput, dateError && styles.textInputError]}>
-                                            <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
-                                                {formatDate(birthDate)}
-                                            </Text>
-                                        </View>
-                                        <MaterialIcons name="calendar-today" size={20} color="#d4af37" style={styles.inputIcon} />
-                                    </TouchableOpacity>
-                                </>
+                                <TouchableOpacity
+                                    style={styles.textInputWrapper}
+                                    onPress={() => setShowDatePicker(true)}
+                                >
+                                    <View style={[styles.textInput, dateError && styles.textInputError]}>
+                                        <Text style={[styles.dateText, !birthDate && styles.placeholderText]}>
+                                            {formatDate(birthDate)}
+                                        </Text>
+                                    </View>
+                                    <MaterialIcons name="calendar-today" size={18} color="#d4af37" style={styles.inputIcon} />
+                                </TouchableOpacity>
                             )}
                         </View>
 
-                        {/* iOS Modal */}
+                        {/* iOS Modal - Geri Getirildi */}
                         {Platform.OS === 'ios' && (
                             <Modal transparent={true} animationType="slide" visible={showDatePicker}>
                                 <View style={styles.modalOverlay}>
@@ -218,7 +230,7 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 </View>
                             </Modal>
                         )}
-                        {/* Android Picker */}
+                        {/* Android Picker - Geri Getirildi */}
                         {Platform.OS === 'android' && showDatePicker && (
                             <DateTimePicker
                                 value={birthDate || new Date()}
@@ -230,24 +242,23 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                         )}
                     </View>
 
-                    {/* Auto-detected zodiac info */}
-                    {isZodiacAuto && (
-                        <View style={styles.zodiacInfoBanner}>
-                            <MaterialCommunityIcons name="star-four-points" size={16} color="#d4af37" />
-                            <Text style={styles.zodiacInfoText}>
-                                Burcunuz <Text style={styles.zodiacInfoHighlight}>{selectedZodiac}</Text> olarak belirlendi ✨
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Zodiac Selection */}
+                    {/* Zodiac Selection - Smaller cards with Arrow Indicators */}
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Burç {isZodiacAuto ? '(Otomatik)' : ''}</Text>
+                        <Text style={styles.inputLabel}>Burç {isZodiacAuto ? '✨' : ''}</Text>
                         <View style={styles.zodiacScrollWrapper}>
+                            {/* Left Arrow */}
+                            {showLeftArrow && (
+                                <View style={styles.leftArrowContainer} pointerEvents="none">
+                                    <MaterialIcons name="chevron-left" size={24} color="#d4af37" />
+                                </View>
+                            )}
+
                             <ScrollView
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
                                 contentContainerStyle={styles.zodiacScrollContent}
+                                onScroll={handleScroll}
+                                scrollEventThrottle={16}
                             >
                                 {ZODIAC_SIGNS.map((item) => (
                                     <TouchableOpacity
@@ -257,8 +268,8 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                     >
                                         <MaterialCommunityIcons
                                             name={item.icon}
-                                            size={32}
-                                            color={selectedZodiac === item.name ? '#d4af37' : 'rgba(255, 255, 255, 0.5)'}
+                                            size={26}
+                                            color={selectedZodiac === item.name ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'}
                                         />
                                         <Text style={[styles.zodiacName, selectedZodiac === item.name ? styles.zodiacNameActive : styles.zodiacNameInactive]}>
                                             {item.name}
@@ -266,10 +277,17 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>
+
+                            {/* Right Arrow */}
+                            {showRightArrow && (
+                                <View style={styles.rightArrowContainer} pointerEvents="none">
+                                    <MaterialIcons name="chevron-right" size={24} color="#d4af37" />
+                                </View>
+                            )}
                         </View>
                     </View>
 
-                    {/* Gender Selection */}
+                    {/* Gender Selection - Ultra compact */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>Cinsiyet</Text>
                         <View style={styles.pillGroup}>
@@ -277,23 +295,24 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 <TouchableOpacity
                                     key={gender}
                                     onPress={() => setSelectedGender(gender)}
-                                    style={[styles.pillButton, selectedGender === gender && styles.pillButtonActive, { flex: 1, alignItems: 'center' }]}
+                                    style={[styles.pillButton, selectedGender === gender && styles.pillButtonActive]}
                                 >
-                                    <MaterialCommunityIcons 
-                                        name={gender === 'Kadın' ? 'gender-female' : 'gender-male'} 
-                                        size={20} 
-                                        color={selectedGender === gender ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'} 
-                                        style={{ marginBottom: 4 }}
-                                    />
-                                    <Text style={[styles.pillText, selectedGender === gender && styles.pillTextActive]}>
-                                        {gender}
-                                    </Text>
+                                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+                                        <MaterialCommunityIcons 
+                                            name={gender === 'Kadın' ? 'gender-female' : 'gender-male'} 
+                                            size={16} 
+                                            color={selectedGender === gender ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'} 
+                                        />
+                                        <Text style={[styles.pillText, selectedGender === gender && styles.pillTextActive]}>
+                                            {gender}
+                                        </Text>
+                                    </View>
                                 </TouchableOpacity>
                             ))}
                         </View>
                     </View>
 
-                    {/* Relationship Status Selection */}
+                    {/* Relationship Status Selection - Slim design */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>İlişki Durumu</Text>
                         <View style={styles.pillGroup}>
@@ -314,16 +333,14 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                             ))}
                         </View>
                     </View>
-
-                    {/* Submit Button placed inside ScrollView at the end */}
-                    <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-                        <Text style={styles.continueButtonText}>Kozmos'a Devam Et</Text>
-                        <MaterialCommunityIcons name="auto-fix" size={22} color="#1c1022" />
-                    </TouchableOpacity>
-
-                    <View style={{ height: 40 }} />
                 </View>
-            </ScrollView>
+
+                {/* Continue Action */}
+                <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                    <Text style={styles.continueButtonText}>Devam Et</Text>
+                    <MaterialCommunityIcons name="chevron-right" size={22} color="#1c1022" />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -337,63 +354,71 @@ const styles = StyleSheet.create({
     },
     onboardingHeader: {
         height: 60,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        paddingTop: 10,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingTop: 10,
     },
     onboardingHeaderTitle: {
         color: 'white',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Outfit_600SemiBold',
     },
-    scrollContent: {
-        flexGrow: 1,
-        paddingHorizontal: 24,
-        paddingTop: 10,
-        paddingBottom: 40,
+    mainContentFit: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+        justifyContent: 'space-evenly',
     },
     onboardingHeadline: {
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: 10,
     },
     onboardingTitle: {
         color: 'white',
-        fontSize: 28,
+        fontSize: 22,
         fontFamily: 'Outfit_700Bold',
         textAlign: 'center',
-        marginBottom: 8,
+        marginBottom: 4,
     },
     onboardingSubtitle: {
-        color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 15,
+        color: 'rgba(255, 255, 255, 0.5)',
+        fontSize: 13,
         fontFamily: 'Inter_400Regular',
         textAlign: 'center',
-        lineHeight: 20,
+        lineHeight: 18,
     },
     formContainer: {
-        gap: 30,
+        gap: 15,
     },
     inputGroup: {
-        gap: 12,
+        gap: 8,
     },
     inputLabel: {
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 12,
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 10,
         fontFamily: 'Inter_700Bold',
-        letterSpacing: 1.2,
+        letterSpacing: 1,
         textTransform: 'uppercase',
     },
     textInputWrapper: {
         position: 'relative',
-        height: 52,
+        height: 44,
     },
     textInput: {
         flex: 1,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 12,
-        paddingHorizontal: 16,
+        borderRadius: 10,
+        paddingHorizontal: 14,
         justifyContent: 'center',
     },
     textInputError: {
@@ -401,78 +426,86 @@ const styles = StyleSheet.create({
     },
     inputIcon: {
         position: 'absolute',
-        right: 16,
-        top: 15,
+        right: 14,
+        top: 13,
     },
     dateText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 14,
     },
     placeholderText: {
         color: 'rgba(255, 255, 255, 0.2)',
-    },
-    webInputOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100%',
-        height: '100%',
-        opacity: 0,
-        cursor: 'pointer',
-        zIndex: 10,
     },
     webDateContainer: {
         width: '100%',
     },
     webSelectGroup: {
         flexDirection: 'row',
-        gap: 8,
+        gap: 6,
     },
     webSelect: {
         flex: 1,
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.15)',
-        borderRadius: 12,
-        height: 52,
+        borderRadius: 10,
+        height: 44,
         color: 'white',
-        fontSize: 14,
-        paddingHorizontal: 4,
+        fontSize: 13,
+        paddingHorizontal: 2,
         appearance: 'none',
         cursor: 'pointer',
         textAlign: 'center',
-        textAlignLast: 'center', // Safari and others centering fix
     },
     zodiacScrollWrapper: {
-        height: 90,
+        height: 70,
+        position: 'relative',
     },
     zodiacScrollContent: {
-        gap: 12,
-        paddingRight: 20,
+        gap: 10,
+        paddingHorizontal: 10, // Add some padding for arrows
+    },
+    leftArrowContainer: {
+        position: 'absolute',
+        left: -10,
+        top: 0,
+        bottom: 0,
+        width: 30,
+        zIndex: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    rightArrowContainer: {
+        position: 'absolute',
+        right: -10,
+        top: 0,
+        bottom: 0,
+        width: 30,
+        zIndex: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     zodiacCard: {
-        width: 90,
-        height: 90,
+        width: 70,
+        height: 70,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 12,
+        borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
+        gap: 4,
     },
     zodiacCardSelected: {
         backgroundColor: 'rgba(212, 175, 55, 0.15)',
         borderColor: '#d4af37',
-        borderWidth: 2,
+        borderWidth: 1.5,
     },
     zodiacName: {
-        fontSize: 11,
+        fontSize: 10,
     },
     zodiacNameInactive: {
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: 'rgba(255, 255, 255, 0.6)',
     },
     zodiacNameActive: {
         color: 'white',
@@ -481,13 +514,14 @@ const styles = StyleSheet.create({
     pillGroup: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        gap: 6,
     },
     pillButton: {
+        flexGrow: 1,
         minWidth: '28%',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        borderRadius: 12,
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -500,27 +534,7 @@ const styles = StyleSheet.create({
     },
     pillText: {
         color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 13,
-    },
-    zodiacInfoBanner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(212, 175, 55, 0.25)',
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-    },
-    zodiacInfoText: {
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 13,
-        fontFamily: 'Inter_400Regular',
-    },
-    zodiacInfoHighlight: {
-        color: '#d4af37',
-        fontFamily: 'Inter_700Bold',
+        fontSize: 12,
     },
     pillTextActive: {
         color: '#d4af37',
@@ -528,18 +542,18 @@ const styles = StyleSheet.create({
     },
     continueButton: {
         backgroundColor: '#d4af37',
-        height: 58,
-        borderRadius: 16,
+        height: 52,
+        borderRadius: 14,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
+        gap: 8,
         marginTop: 10,
-        boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
     },
     continueButtonText: {
         color: '#1c1022',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: 'Outfit_700Bold',
     },
     modalOverlay: {

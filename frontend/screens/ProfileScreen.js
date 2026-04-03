@@ -78,14 +78,16 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, accessToken
                 <View style={styles.banner}>
                     <View style={styles.profileImageContainer}>
                         <View style={styles.avatarCircle}>
-                            {user.picture ? (
+                            {user?.picture ? (
                                 <Image source={{ uri: user.picture }} style={styles.avatarImage} />
                             ) : (
-                                <MaterialCommunityIcons name="account" size={50} color="#d4af37" />
+                                <MaterialCommunityIcons name="account" size={40} color="#d4af37" />
                             )}
                         </View>
                     </View>
-                    <Text style={styles.userName}>{fullUser.name || user.name}</Text>
+                    <Text style={styles.userName}>
+                        {fullUser?.name || fullUser?.username || user?.name || user?.username || 'Kozmik Yolcu'}
+                    </Text>
                 </View>
 
                 {/* User Details Section */}

@@ -49,22 +49,18 @@ export default function App() {
         // 1. Önce redirect'ten mi döndük diye URL'e bak (Web tarafı)
         if (Platform.OS === 'web' && window.location.search.includes('code=') && window.location.search.includes('state=')) {
           const result = await AuthService.handleRedirectCallback();
-          if (result) {
+          if (result && result.user) {
             // Callback başarılı, URL'i temizle ve girişi tamamla
             window.history.replaceState({}, document.title, window.location.pathname);
-            const { user, accessToken: token } = result;
-            setAccessToken(token);
-            await checkUserAndNavigate(user);
+            await checkUserAndNavigate(result.user, result.accessToken);
             return;
           }
         }
 
         // 2. Normal session kontrolü
         const session = await AuthService.checkSession();
-        if (session) {
-          const { user, accessToken: token } = session;
-          setAccessToken(token);
-          await checkUserAndNavigate(user);
+        if (session && session.user) {
+          await checkUserAndNavigate(session.user, session.accessToken);
         }
       } catch (error) {
         console.log('[App] Auth init error:', error);
@@ -75,10 +71,19 @@ export default function App() {
     initAuth();
   }, []);
 
-  const checkUserAndNavigate = async (user) => {
+  const checkUserAndNavigate = async (user, currentToken = null) => {
+    // 1. Zırhlı Kontrol: Eğer user null ise kesinlikle devam etme, giriş ekranına dön
+    if (!user || (!user.id && !user.sub)) {
+      console.log('[Auth] Invalid or Null user, aborting navigation');
+      setCurrentScreen('login');
+      return;
+    }
+
     setSessionUser(user);
-    // Artık profilin tamamlanıp tamamlanmadığını user nesnesindeki isProfileComplete alanından anlıyoruz
-    if (user.isProfileComplete) {
+    if (currentToken) setAccessToken(currentToken);
+    
+    // 2. Profil kontrolünü de güvenli yapıyoruz
+    if (user?.isProfileComplete) {
       setUserInfo(user);
       setCurrentScreen('home');
     } else {
@@ -115,10 +120,13 @@ export default function App() {
     } catch (error) {
       console.log('Logout error:', error);
     }
+    // Tüm state'leri ve oturumu sıfırla
     setSessionUser(null);
     setUserInfo(null);
     setAccessToken(null);
     setSelectedReading(null);
+    // Welcome yerine direkt Login'e at ki kullanıcı hesap seçebilsin
+    // Welcome yerine direkt Login'e at ki kullanıcı hesap seçebilsin
     setCurrentScreen('login');
   };
 
