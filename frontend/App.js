@@ -156,7 +156,21 @@ export default function App() {
               {currentScreen === 'login' && (
                 <LoginScreen
                   onLoginSuccess={handleLoginSuccess}
-                  onDevLogin={() => checkUserAndNavigate({ id: 'dev_user_123', name: 'Geliştirici', email: 'dev@test.com' })}
+                  onDevLogin={async () => {
+                    try {
+                      const result = await AuthService.syncGoogleUser({
+                        id: 'dev_user_123',
+                        name: 'Geliştirici',
+                        email: 'dev@test.com',
+                        picture: 'https://via.placeholder.com/150'
+                      });
+                      if (result && result.user) {
+                        handleLoginSuccess(result.user, result.accessToken);
+                      }
+                    } catch (error) {
+                      console.log('[DevLogin] Error:', error);
+                    }
+                  }}
                 />
               )}
               {currentScreen === 'onboarding' && (

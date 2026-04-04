@@ -33,19 +33,19 @@ const protect = asyncHandler(async (req, res, next) => {
                 // Auth0 başarılı! Token içindeki 'sub' (User ID) ile bizdeki kullanıcıyı eşleştiriyoruz
                 const email = req.auth.payload.email || req.auth.payload['https://falfora.com/email']; // Auth0 custom claim check
                 // sub bazlı bulmaya çalış veya email bazlı (google-sync logic)
-                let user = await User.findOne({ 
+                let user = await User.findOne({
                     $or: [
                         { email: req.auth.payload.email },
                         { sub: req.auth.payload.sub }
                     ]
                 });
-                
+
                 if (user) {
                     req.user = user;
                     return next();
                 }
             }
-            
+
             // İkisi de başarısızsa
             res.status(401);
             throw new Error('Not authorized, token failed');

@@ -24,6 +24,23 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
     };
 
     const handleDeleteOne = async (readingId) => {
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm("Bu kozmik kaydı kalıcı olarak silmek istediğinize emin misiniz?");
+            if (confirmed) {
+                try {
+                    const success = await DatabaseService.deleteReadingFromServer(readingId, accessToken);
+                    if (success) {
+                        setHistoryItems(prev => prev.filter(item => item._id !== readingId));
+                    } else {
+                        alert("Hata: Kayıt silinemedi.");
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                }
+            }
+            return;
+        }
+
         Alert.alert(
             "Kaydı Sil",
             "Bu kozmik kaydı kalıcı olarak silmek istediğinize emin misiniz?",
@@ -63,6 +80,23 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
     };
 
     const handleClearHistory = async () => {
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm("Tüm geçmiş kayıtlarınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.");
+            if (confirmed) {
+                try {
+                    const success = await DatabaseService.clearHistoryFromServer(accessToken);
+                    if (success) {
+                        setHistoryItems([]);
+                    } else {
+                        alert("Hata: Geçmiş temizlenemedi.");
+                    }
+                } catch (error) {
+                    console.error('Clear error:', error);
+                }
+            }
+            return;
+        }
+
         Alert.alert(
             "Tümünü Sil",
             "Tüm geçmiş kayıtlarınızı kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
@@ -145,62 +179,66 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
                 ) : (
                     <View style={styles.listContainer}>
                         {historyItems.map((item, index) => (
-                            <TouchableOpacity
-                                key={item._id || item.id || `history-${index}`}
-                                style={styles.historyCard}
-                                onPress={() => onSelectReading(item)}
-                                activeOpacity={0.7}
-                            >
-                                <View style={styles.cardHeader}>
-                                    <View style={styles.typeTag}>
-                                        <MaterialCommunityIcons
-                                            name={{
-                                                'single_1': 'star-shooting',
-                                                '3_cards': 'cards-playing-outline',
-                                                'love_7': 'heart-multiple',
-                                                '10_cards': 'auto-fix'
-                                            }[item.type] || 'cards-playing-outline'}
-                                            size={16}
-                                            color="#d4af37"
-                                        />
-                                        <Text style={styles.typeText}>
-                                            {{
-                                                'love_7': 'Aşk Açılımı',
-                                                '10_cards': 'Galaktik Açılım',
-                                                '3_cards': 'Günlük Bakış',
-                                                'single_1': 'Günün Tavsiyesi'
-                                            }[item.type] || (
-                                                // Eski kayıtlar için kart sayısına veya slayt sayısına (result length) bak
-                                                (item.cards?.length === 7 || item.result?.length === 10) ? 'Aşk Açılımı' : 
-                                                (item.cards?.length === 10 || item.result?.length === 13) ? 'Galaktik Açılım' : 
-                                                (item.cards?.length === 3 || item.result?.length === 6) ? 'Günlük Bakış' :
-                                                (item.cards?.length === 1 || item.result?.length === 4) ? 'Günün Tavsiyesi' :
-                                                'Tarot Falı'
-                                            )}
-                                        </Text>
+                            <View key={item._id || item.id || `history-${index}`} style={styles.historyCard}>
+                                <TouchableOpacity
+                                    style={styles.cardContentTouch}
+                                    onPress={() => onSelectReading(item)}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={styles.cardHeader}>
+                                        <View style={styles.typeTag}>
+                                            <MaterialCommunityIcons
+                                                name={{
+                                                    'single_1': 'star-shooting',
+                                                    '3_cards': 'cards-playing-outline',
+                                                    'love_7': 'heart-multiple',
+                                                    '10_cards': 'auto-fix'
+                                                }[item.type] || 'cards-playing-outline'}
+                                                size={16}
+                                                color="#d4af37"
+                                            />
+                                            <Text style={styles.typeText}>
+                                                {{
+                                                    'love_7': 'Aşk Açılımı',
+                                                    '10_cards': 'Galaktik Açılım',
+                                                    '3_cards': 'Günlük Bakış',
+                                                    'single_1': 'Günün Tavsiyesi'
+                                                }[item.type] || (
+                                                    (item.cards?.length === 7 || item.result?.length === 10) ? 'Aşk Açılımı' : 
+                                                    (item.cards?.length === 10 || item.result?.length === 13) ? 'Galaktik Açılım' : 
+                                                    (item.cards?.length === 3 || item.result?.length === 6) ? 'Günlük Bakış' :
+                                                    (item.cards?.length === 1 || item.result?.length === 4) ? 'Günün Tavsiyesi' :
+                                                    'Tarot Falı'
+                                                )}
+                                            </Text>
+                                        </View>
+                                        <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
                                     </View>
-                                    <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
-                                </View>
 
-                                <View style={{ height: 8 }} />
-                                <Text style={styles.outcomeText} numberOfLines={2}>
-                                    {item.selectedCards?.map(c => sanitizeCardName(c.name || c)).join(', ')}
-                                </Text>
+                                    <View style={{ height: 8 }} />
+                                    <Text style={styles.outcomeText} numberOfLines={2}>
+                                        {item.selectedCards?.map(c => sanitizeCardName(c.name || c)).join(', ')}
+                                    </Text>
 
-                                <Text style={styles.readingPreview} numberOfLines={3}>
-                                    {item.result}
-                                </Text>
+                                    <Text style={styles.readingPreview} numberOfLines={3}>
+                                        {Array.isArray(item.result) ? item.result.join(' ') : String(item.result || '')}
+                                    </Text>
 
-                                <View style={styles.cardFooter}>
-                                    <TouchableOpacity 
-                                        onPress={() => handleDeleteOne(item._id)}
-                                        style={styles.cardDeleteButton}
-                                    >
-                                        <MaterialCommunityIcons name="trash-can-outline" size={20} color="rgba(255, 77, 77, 0.6)" />
-                                    </TouchableOpacity>
-                                    <MaterialCommunityIcons name="arrow-right" size={20} color="#d4af37" />
-                                </View>
-                            </TouchableOpacity>
+                                    <View style={styles.cardFooter}>
+                                        <View style={{ flex: 1 }} />
+                                        <MaterialCommunityIcons name="arrow-right" size={20} color="#d4af37" />
+                                    </View>
+                                </TouchableOpacity>
+
+                                {/* Separate Delete Button to avoid z-index/touch conflicts */}
+                                <TouchableOpacity 
+                                    onPress={() => handleDeleteOne(item._id)}
+                                    style={styles.cardDeleteButtonAbsolute}
+                                    hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                                >
+                                    <MaterialCommunityIcons name="trash-can-outline" size={20} color="rgba(255, 77, 77, 0.7)" />
+                                </TouchableOpacity>
+                            </View>
                         ))}
                     </View>
                 )}
@@ -278,10 +316,14 @@ const styles = StyleSheet.create({
     historyCard: {
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 20,
-        padding: 20,
         marginBottom: 16,
         borderWidth: 1,
         borderColor: 'rgba(212, 175, 55, 0.15)',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    cardContentTouch: {
+        padding: 20,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -327,10 +369,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginTop: 4,
     },
-    cardDeleteButton: {
-        padding: 5,
-        borderRadius: 8,
-        backgroundColor: 'rgba(255, 77, 77, 0.05)',
+    cardDeleteButtonAbsolute: {
+        position: 'absolute',
+        bottom: 12,
+        left: 12,
+        padding: 10,
+        borderRadius: 10,
+        backgroundColor: 'rgba(255, 77, 77, 0.08)',
+        zIndex: 50,
     },
     viewMoreText: {
         display: 'none',
