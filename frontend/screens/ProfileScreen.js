@@ -3,30 +3,32 @@ import React, { useState, useRef } from 'react';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DatabaseService } from '../services/database';
+import { RELATIONSHIP_STATUSES, getRelationshipLabel, getGenderLabel, getZodiacLabel } from '../constants/userConstants';
 
-const ZODIAC_SIGNS = [
-    { name: 'Koç', icon: 'zodiac-aries' },
-    { name: 'Boğa', icon: 'zodiac-taurus' },
-    { name: 'İkizler', icon: 'zodiac-gemini' },
-    { name: 'Yengeç', icon: 'zodiac-cancer' },
-    { name: 'Aslan', icon: 'zodiac-leo' },
-    { name: 'Başak', icon: 'zodiac-virgo' },
-    { name: 'Terazi', icon: 'zodiac-libra' },
-    { name: 'Akrep', icon: 'zodiac-scorpio' },
-    { name: 'Yay', icon: 'zodiac-sagittarius' },
-    { name: 'Oğlak', icon: 'zodiac-capricorn' },
-    { name: 'Kova', icon: 'zodiac-aquarius' },
-    { name: 'Balık', icon: 'zodiac-pisces' },
+const ZODIAC_LIST = [
+    { name: 'Koç', icon: 'zodiac-aries', key: 'aries' },
+    { name: 'Boğa', icon: 'zodiac-taurus', key: 'taurus' },
+    { name: 'İkizler', icon: 'zodiac-gemini', key: 'gemini' },
+    { name: 'Yengeç', icon: 'zodiac-cancer', key: 'cancer' },
+    { name: 'Aslan', icon: 'zodiac-leo', key: 'leo' },
+    { name: 'Başak', icon: 'zodiac-virgo', key: 'virgo' },
+    { name: 'Terazi', icon: 'zodiac-libra', key: 'libra' },
+    { name: 'Akrep', icon: 'zodiac-scorpio', key: 'scorpio' },
+    { name: 'Yay', icon: 'zodiac-sagittarius', key: 'sagittarius' },
+    { name: 'Oğlak', icon: 'zodiac-capricorn', key: 'capricorn' },
+    { name: 'Kova', icon: 'zodiac-aquarius', key: 'aquarius' },
+    { name: 'Balık', icon: 'zodiac-pisces', key: 'pisces' },
 ];
 
 export default function ProfileScreen({ user, userInfo, setUserInfo, accessToken, onLogout, onNavigate }) {
     const fullUser = userInfo || {};
     const webDateInputRef = useRef(null);
 
-    const [relationshipStatus, setRelationshipStatus] = useState(fullUser.relationship || 'İlişkisi Var');
+    const [relationshipStatus, setRelationshipStatus] = useState(fullUser.relationship || 'single');
     const [isSaving, setIsSaving] = useState(false);
 
-    const hasChanged = relationshipStatus !== (fullUser.relationship || 'İlişkisi Var');
+    const currentRelationship = fullUser.relationship || 'single';
+    const hasChanged = relationshipStatus !== currentRelationship;
 
     const handleSave = async () => {
         if (isSaving || !hasChanged) return;
@@ -65,11 +67,11 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, accessToken
 
     const infoItems = [
         { key: 'birthDate', label: 'Doğum Tarihi', value: formatDateForView(fullUser.birthDate), icon: 'calendar-heart' },
-        { key: 'zodiac', label: 'Burç', value: fullUser.zodiac || 'Belirtilmedi', icon: 'zodiac-leo' },
-        { key: 'gender', label: 'Cinsiyet', value: fullUser.gender || 'Belirtilmedi', icon: fullUser.gender === 'Erkek' ? 'gender-male' : 'gender-female' },
+        { key: 'zodiac', label: 'Burç', value: getZodiacLabel(fullUser.zodiac) || 'Belirtilmedi', icon: 'zodiac-leo' },
+        { key: 'gender', label: 'Cinsiyet', value: getGenderLabel(fullUser.gender) || 'Belirtilmedi', icon: fullUser.gender === 'male' ? 'gender-male' : 'gender-female' },
     ];
 
-    const RELATIONS = ['Bekar', 'İlişkisi Var', 'Evli', 'Boşanmış', 'Karışık'];
+    // Removed legacy RELATIONS array
 
     return (
         <View style={styles.container}>
@@ -117,13 +119,13 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, accessToken
                             <View style={styles.infoTextContainer}>
                                 <Text style={styles.infoLabel}>İlişki Durumu</Text>
                                 <View style={styles.pillGroupCompact}>
-                                    {RELATIONS.map((status) => (
+                                    {RELATIONSHIP_STATUSES.map((status) => (
                                         <TouchableOpacity
-                                            key={status}
-                                            onPress={() => setRelationshipStatus(status)}
+                                            key={status.key}
+                                            onPress={() => setRelationshipStatus(status.key)}
                                             style={[
                                                 styles.pillButtonSmall,
-                                                relationshipStatus === status && styles.pillButtonSmallActive,
+                                                relationshipStatus === status.key && styles.pillButtonSmallActive,
                                             ]}
                                         >
                                             <Text
@@ -131,10 +133,10 @@ export default function ProfileScreen({ user, userInfo, setUserInfo, accessToken
                                                 adjustsFontSizeToFit
                                                 style={[
                                                     styles.pillTextSmall,
-                                                    relationshipStatus === status && styles.pillTextSmallActive,
+                                                    relationshipStatus === status.key && styles.pillTextSmallActive,
                                                 ]}
                                             >
-                                                {status}
+                                                {status.label}
                                             </Text>
                                         </TouchableOpacity>
                                     ))}

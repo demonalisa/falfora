@@ -3,6 +3,7 @@ const Reading = require('../models/Reading');
 const Stats = require('../models/Stats');
 const Groq = require('groq-sdk');
 const { pickRandomCards } = require('../utils/cards');
+const { getRelationshipLabel, getGenderLabel, getZodiacLabel } = require('../utils/userConstants');
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -20,7 +21,7 @@ const createReading = asyncHandler(async (req, res) => {
     const selectedCards = reqSelectedCards || (manualCards && Array.isArray(manualCards) ? manualCards : pickRandomCards(cardCount));
 
     const themes = {
-        'love_7': {
+        'loveReading7': {
             title: 'Aşk Açılımı',
             details: [
                 '1. KART: Senin (Kullanıcının) derin duyguları ve mevcut ruh halin.',
@@ -32,7 +33,7 @@ const createReading = asyncHandler(async (req, res) => {
                 '7. KART: İlişkinin yakın gelecekteki potansiyeli ve varacağı kozmik sonuç.'
             ]
         },
-        '3_cards': {
+        'dailyReading3': {
             title: 'Günlük Bakış',
             details: [
                 '1. KART: Geçmişin tortuları ve bugününü etkileyen eski enerjiler.',
@@ -40,7 +41,7 @@ const createReading = asyncHandler(async (req, res) => {
                 '3. KART: Yakın gelecekte seni bekleyen potansiyel ve kozmik mesaj.'
             ]
         },
-        '10_cards': {
+        'celticCrossReading10': {
             title: 'Galaktik Açılım',
             details: [
                 '1. KART: Mevcut Durumun ve merkezin.',
@@ -55,7 +56,7 @@ const createReading = asyncHandler(async (req, res) => {
                 '10. KART: Kozmik sonuç, varacağın son nokta.'
             ]
         },
-        'single_1': {
+        'oneCardReading1': {
             title: 'Günün Tavsiyesi',
             details: [
                 '1. KART: Bugün alman gereken ana mesaj, genel tavsiye ve günün rehberlik enerjisi.'
@@ -73,9 +74,9 @@ const createReading = asyncHandler(async (req, res) => {
       Aşağıda kullanıcı bilgileri:
       - İsim: ${userInfo.name || 'Kullanıcı'}
       - Doğum Tarihi: ${userInfo.birthDate || 'Belirtilmedi'}
-      - Burç: ${userInfo.horoscope || 'Belirtilmedi'}
-      - Cinsiyet: ${userInfo.gender || 'Belirtilmedi'}
-      - İlişkisel Durum: ${userInfo.relationship || 'Belirtilmedi'}
+      - Burç: ${getZodiacLabel(userInfo.horoscope) || 'Belirtilmedi'}
+      - Cinsiyet: ${getGenderLabel(userInfo.gender) || 'Belirtilmedi'}
+      - İlişkisel Durum: ${getRelationshipLabel(userInfo.relationship) || 'Belirtilmedi'}
 
       Seçilen Kartlar:
       ${selectedCards.join('\n- ')}
@@ -158,11 +159,11 @@ const createReading = asyncHandler(async (req, res) => {
         createdAt: new Date()
     });
 
-    // Update Stats (Global) - Optional performance enhancement
+    // Update Stats (Global) - Now categorized by specific reading type and grouped by month
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     await Stats.findOneAndUpdate(
-        { date: today, type: 'tarot' },
+        { date: firstDayOfMonth, type: type || 'tarot_general' },
         { $inc: { count: 1 } },
         { upsert: true, returnDocument: 'after' }
     );

@@ -2,38 +2,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Platform, Modal, Animated } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { RELATIONSHIP_STATUSES, GENDERS, ZODIAC_SIGNS } from '../constants/userConstants';
 
-const ZODIAC_SIGNS = [
-    { name: 'Koç', icon: 'zodiac-aries' },
-    { name: 'Boğa', icon: 'zodiac-taurus' },
-    { name: 'İkizler', icon: 'zodiac-gemini' },
-    { name: 'Yengeç', icon: 'zodiac-cancer' },
-    { name: 'Aslan', icon: 'zodiac-leo' },
-    { name: 'Başak', icon: 'zodiac-virgo' },
-    { name: 'Terazi', icon: 'zodiac-libra' },
-    { name: 'Akrep', icon: 'zodiac-scorpio' },
-    { name: 'Yay', icon: 'zodiac-sagittarius' },
-    { name: 'Oğlak', icon: 'zodiac-capricorn' },
-    { name: 'Kova', icon: 'zodiac-aquarius' },
-    { name: 'Balık', icon: 'zodiac-pisces' },
-];
+const ZODIAC_LIST = ZODIAC_SIGNS;
 
-function getZodiacFromDate(date) {
+function getZodiacKeyFromDate(date) {
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Koç';
-    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Boğa';
-    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'İkizler';
-    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Yengeç';
-    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Aslan';
-    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Başak';
-    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Terazi';
-    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Akrep';
-    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Yay';
-    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Oğlak';
-    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Kova';
-    if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Balık';
-    return 'Koç';
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'aries';
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'taurus';
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'gemini';
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'cancer';
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'leo';
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'virgo';
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'libra';
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'scorpio';
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'sagittarius';
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'capricorn';
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'aquarius';
+    if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'pisces';
+    return 'aries';
 }
 
 const MONTHS = [
@@ -48,9 +36,9 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     const [birthDate, setBirthDate] = useState(null);
     const [tempDate, setTempDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [selectedZodiac, setSelectedZodiac] = useState('Aslan');
-    const [relationshipStatus, setRelationshipStatus] = useState('İlişkisi Var');
-    const [selectedGender, setSelectedGender] = useState('Kadın');
+    const [selectedZodiac, setSelectedZodiac] = useState('leo');
+    const [relationshipStatus, setRelationshipStatus] = useState('single');
+    const [selectedGender, setSelectedGender] = useState('female');
     const [dateError, setDateError] = useState(false);
     const [isZodiacAuto, setIsZodiacAuto] = useState(false);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -60,8 +48,8 @@ export default function OnboardingScreen({ onComplete, onBack }) {
     // Auto-detect zodiac from birth date
     useEffect(() => {
         if (birthDate) {
-            const zodiac = getZodiacFromDate(birthDate);
-            setSelectedZodiac(zodiac);
+            const zodiacKey = getZodiacKeyFromDate(birthDate);
+            setSelectedZodiac(zodiacKey);
             setIsZodiacAuto(true);
         }
     }, [birthDate]);
@@ -260,19 +248,19 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                                 onScroll={handleScroll}
                                 scrollEventThrottle={16}
                             >
-                                {ZODIAC_SIGNS.map((item) => (
+                                {ZODIAC_LIST.map((item) => (
                                     <TouchableOpacity
-                                        key={item.name}
-                                        onPress={() => handleZodiacSelect(item.name)}
-                                        style={[styles.zodiacCard, selectedZodiac === item.name && styles.zodiacCardSelected]}
+                                        key={item.key}
+                                        onPress={() => setSelectedZodiac(item.key)}
+                                        style={[styles.zodiacCard, selectedZodiac === item.key && styles.zodiacCardSelected]}
                                     >
                                         <MaterialCommunityIcons
                                             name={item.icon}
                                             size={26}
-                                            color={selectedZodiac === item.name ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'}
+                                            color={selectedZodiac === item.key ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'}
                                         />
-                                        <Text style={[styles.zodiacName, selectedZodiac === item.name ? styles.zodiacNameActive : styles.zodiacNameInactive]}>
-                                            {item.name}
+                                        <Text style={[styles.zodiacName, selectedZodiac === item.key ? styles.zodiacNameActive : styles.zodiacNameInactive]}>
+                                            {item.label}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -291,20 +279,20 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>Cinsiyet</Text>
                         <View style={styles.pillGroup}>
-                            {['Kadın', 'Erkek'].map((gender) => (
+                            {GENDERS.map((gender) => (
                                 <TouchableOpacity
-                                    key={gender}
-                                    onPress={() => setSelectedGender(gender)}
-                                    style={[styles.pillButton, selectedGender === gender && styles.pillButtonActive]}
+                                    key={gender.key}
+                                    onPress={() => setSelectedGender(gender.key)}
+                                    style={[styles.pillButton, selectedGender === gender.key && styles.pillButtonActive]}
                                 >
                                     <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
                                         <MaterialCommunityIcons 
-                                            name={gender === 'Kadın' ? 'gender-female' : 'gender-male'} 
+                                            name={gender.icon} 
                                             size={16} 
-                                            color={selectedGender === gender ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'} 
+                                            color={selectedGender === gender.key ? '#d4af37' : 'rgba(255, 255, 255, 0.4)'} 
                                         />
-                                        <Text style={[styles.pillText, selectedGender === gender && styles.pillTextActive]}>
-                                            {gender}
+                                        <Text style={[styles.pillText, selectedGender === gender.key && styles.pillTextActive]}>
+                                            {gender.label}
                                         </Text>
                                     </View>
                                 </TouchableOpacity>
@@ -316,18 +304,18 @@ export default function OnboardingScreen({ onComplete, onBack }) {
                     <View style={styles.inputGroup}>
                         <Text style={styles.inputLabel}>İlişki Durumu</Text>
                         <View style={styles.pillGroup}>
-                            {['Bekar', 'İlişkisi Var', 'Evli', 'Boşanmış', 'Karışık'].map((status) => (
+                            {RELATIONSHIP_STATUSES.map((status) => (
                                 <TouchableOpacity
-                                    key={status}
-                                    onPress={() => setRelationshipStatus(status)}
-                                    style={[styles.pillButton, relationshipStatus === status && styles.pillButtonActive]}
+                                    key={status.key}
+                                    onPress={() => setRelationshipStatus(status.key)}
+                                    style={[styles.pillButton, relationshipStatus === status.key && styles.pillButtonActive]}
                                 >
                                     <Text 
                                         numberOfLines={1}
                                         adjustsFontSizeToFit
-                                        style={[styles.pillText, relationshipStatus === status && styles.pillTextActive]}
+                                        style={[styles.pillText, relationshipStatus === status.key && styles.pillTextActive]}
                                     >
-                                        {status}
+                                        {status.label}
                                     </Text>
                                 </TouchableOpacity>
                             ))}

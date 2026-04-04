@@ -4,7 +4,7 @@ import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-ic
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }) {
-    const [selectedType, setSelectedType] = useState(null); // '3_cards' or '10_cards'
+    const [selectedType, setSelectedType] = useState(null); // 'dailyReading3' or 'celticCrossReading10'
 
     return (
         <View style={styles.container}>
@@ -19,15 +19,15 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                 <View style={styles.cardContainer}>
                     {/* Single Card Advice Option */}
                     <TouchableOpacity
-                        style={[styles.optionCard, selectedType === 'single_1' && styles.selectedCard]}
-                        onPress={() => setSelectedType('single_1')}
+                        style={[styles.optionCard, selectedType === 'oneCardReading1' && styles.selectedCard]}
+                        onPress={() => setSelectedType('oneCardReading1')}
                         activeOpacity={0.8}
                     >
                         <View style={styles.cardIconWrapper}>
                             <MaterialCommunityIcons
                                 name="star-shooting-outline"
                                 size={32}
-                                color={selectedType === 'single_1' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
+                                color={selectedType === 'oneCardReading1' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
                             />
                         </View>
                         <View style={styles.cardContent}>
@@ -37,7 +37,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         <View style={styles.cardBadge}>
                             <Text style={styles.badgeText}>1 KART</Text>
                         </View>
-                        {selectedType === 'single_1' && (
+                        {selectedType === 'oneCardReading1' && (
                             <View style={styles.checkIcon}>
                                 <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
                             </View>
@@ -46,15 +46,15 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
 
                     {/* 3 Cards Option */}
                     <TouchableOpacity
-                        style={[styles.optionCard, selectedType === '3_cards' && styles.selectedCard]}
-                        onPress={() => setSelectedType('3_cards')}
+                        style={[styles.optionCard, selectedType === 'dailyReading3' && styles.selectedCard]}
+                        onPress={() => setSelectedType('dailyReading3')}
                         activeOpacity={0.8}
                     >
                         <View style={styles.cardIconWrapper}>
                             <MaterialCommunityIcons
                                 name="cards-playing-outline"
                                 size={32}
-                                color={selectedType === '3_cards' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
+                                color={selectedType === 'dailyReading3' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
                             />
                         </View>
                         <View style={styles.cardContent}>
@@ -64,7 +64,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         <View style={styles.cardBadge}>
                             <Text style={styles.badgeText}>3 KART</Text>
                         </View>
-                        {selectedType === '3_cards' && (
+                        {selectedType === 'dailyReading3' && (
                             <View style={styles.checkIcon}>
                                 <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
                             </View>
@@ -73,15 +73,15 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
 
                     {/* 10 Cards Option */}
                     <TouchableOpacity
-                        style={[styles.optionCard, selectedType === '10_cards' && styles.selectedCard]}
-                        onPress={() => setSelectedType('10_cards')}
+                        style={[styles.optionCard, selectedType === 'celticCrossReading10' && styles.selectedCard]}
+                        onPress={() => setSelectedType('celticCrossReading10')}
                         activeOpacity={0.8}
                     >
                         <View style={styles.cardIconWrapper}>
                             <MaterialCommunityIcons
                                 name="cards-outline"
                                 size={32}
-                                color={selectedType === '10_cards' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
+                                color={selectedType === 'celticCrossReading10' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
                             />
                         </View>
                         <View style={styles.cardContent}>
@@ -91,7 +91,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         <View style={styles.cardBadge}>
                             <Text style={styles.badgeText}>10 KART</Text>
                         </View>
-                        {selectedType === '10_cards' && (
+                        {selectedType === 'celticCrossReading10' && (
                             <View style={styles.checkIcon}>
                                 <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
                             </View>
@@ -100,15 +100,15 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
 
                     {/* Love Spread Option */}
                     <TouchableOpacity
-                        style={[styles.optionCard, selectedType === 'love_7' && styles.selectedCard]}
-                        onPress={() => setSelectedType('love_7')}
+                        style={[styles.optionCard, selectedType === 'loveReading7' && styles.selectedCard]}
+                        onPress={() => setSelectedType('loveReading7')}
                         activeOpacity={0.8}
                     >
                         <View style={styles.cardIconWrapper}>
                             <MaterialCommunityIcons
                                 name="heart-multiple-outline"
                                 size={32}
-                                color={selectedType === 'love_7' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
+                                color={selectedType === 'loveReading7' ? '#d4af37' : 'rgba(255, 255, 255, 0.6)'}
                             />
                         </View>
                         <View style={styles.cardContent}>
@@ -118,7 +118,7 @@ export default function HomeScreen({ user, onLogout, onReadFortune, onNavigate }
                         <View style={styles.cardBadge}>
                             <Text style={styles.badgeText}>7 KART</Text>
                         </View>
-                        {selectedType === 'love_7' && (
+                        {selectedType === 'loveReading7' && (
                             <View style={styles.checkIcon}>
                                 <Ionicons name="checkmark-circle" size={20} color="#d4af37" />
                             </View>

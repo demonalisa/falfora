@@ -189,20 +189,20 @@ export default function HistoryScreen({ user, accessToken, onNavigate, onSelectR
                                         <View style={styles.typeTag}>
                                             <MaterialCommunityIcons
                                                 name={{
-                                                    'single_1': 'star-shooting',
-                                                    '3_cards': 'cards-playing-outline',
-                                                    'love_7': 'heart-multiple',
-                                                    '10_cards': 'auto-fix'
+                                                    'oneCardReading1': 'star-shooting',
+                                                    'dailyReading3': 'cards-playing-outline',
+                                                    'loveReading7': 'heart-multiple',
+                                                    'celticCrossReading10': 'auto-fix'
                                                 }[item.type] || 'cards-playing-outline'}
                                                 size={16}
                                                 color="#d4af37"
                                             />
                                             <Text style={styles.typeText}>
                                                 {{
-                                                    'love_7': 'Aşk Açılımı',
-                                                    '10_cards': 'Galaktik Açılım',
-                                                    '3_cards': 'Günlük Bakış',
-                                                    'single_1': 'Günün Tavsiyesi'
+                                                    'loveReading7': 'Aşk Açılımı',
+                                                    'celticCrossReading10': 'Galaktik Açılım',
+                                                    'dailyReading3': 'Günlük Bakış',
+                                                    'oneCardReading1': 'Günün Tavsiyesi'
                                                 }[item.type] || (
                                                     (item.cards?.length === 7 || item.result?.length === 10) ? 'Aşk Açılımı' : 
                                                     (item.cards?.length === 10 || item.result?.length === 13) ? 'Galaktik Açılım' : 
